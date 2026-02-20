@@ -52,18 +52,32 @@ SUPPORT_CHAT = getenv("SUPPORT_CHAT", "https://t.me/cuties_logs")
 
 # ===== IMAGES (REHNE DO BHAI 😄) =====
 
-START_IMG_URL = getenv("START_IMG_URL", "https://graph.org/file/7c703f3d157b477bd5879-4463312df2304b779f.jpg")
-PING_IMG_URL = START_IMG_URL
-PLAYLIST_IMG_URL = START_IMG_URL
-STATS_IMG_URL = START_IMG_URL
-TELEGRAM_AUDIO_URL = START_IMG_URL
-TELEGRAM_VIDEO_URL = START_IMG_URL
-STREAM_IMG_URL = START_IMG_URL
-SOUNCLOUD_IMG_URL = START_IMG_URL
-YOUTUBE_IMG_URL = START_IMG_URL
-SPOTIFY_ARTIST_IMG_URL = START_IMG_URL
-SPOTIFY_ALBUM_IMG_URL = START_IMG_URL
-SPOTIFY_PLAYLIST_IMG_URL = START_IMG_URL
+FORCE_CHANNEL_1 = os.getenv("FORCE_CHANNEL_1", "https://t.me/dark_musictm")
+FORCE_CHANNEL_2 = os.getenv("FORCE_CHANNEL_2", "https://t.me/docker_git_bit")
+
+PING_IMG_URL = os.getenv("PING_IMG_URL", "https://files.catbox.moe/nndfm5.jpg")
+PLAYLIST_IMG_URL = "https://files.catbox.moe/nndfm5.jpg"
+STATS_IMG_URL = "https://files.catbox.moe/bn1lww.jpg"
+TELEGRAM_AUDIO_URL = "https://files.catbox.moe/bn1lww.jpg"
+TELEGRAM_VIDEO_URL = "https://files.catbox.moe/bn1lww.jpg"
+STREAM_IMG_URL = "https://files.catbox.moe/2pan2i.jpg"
+SOUNCLOUD_IMG_URL = "https://files.catbox.moe/opavqw.jpg"
+YOUTUBE_IMG_URL = "https://files.catbox.moe/bn1lww.jpg"
+SPOTIFY_ARTIST_IMG_URL = "https://files.catbox.moe/0ehtgk.jpg"
+SPOTIFY_ALBUM_IMG_URL = "https://files.catbox.moe/opavqw.jpg"
+SPOTIFY_PLAYLIST_IMG_URL = "https://files.catbox.moe/0ehtgk.jpg"
+
+START_IMG_URL = os.getenv("START_IMG_URL")
+
+if START_IMG_URL:
+    START_IMG_URL = random.choice(START_IMG_URL.split(","))
+else:
+    START_IMG_URL = random.choice([
+        "https://files.catbox.moe/nndfm5.jpg",
+        "https://files.catbox.moe/2pan2i.jpg",
+        "https://files.catbox.moe/uyps1d.jpg"
+    ])
+    
 
 # ===== FUNCTIONS =====
 
