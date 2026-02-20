@@ -14,9 +14,7 @@ def help_pannel(_, START: Union[bool, int] = None):
 
     second = [
         [
-            InlineKeyboardButton(text=_["BACK_PAGE"], callback_data="mbot_cb"),
             InlineKeyboardButton(text=_["BACK_BUTTON"], callback_data="settingsback_helper"),
-            InlineKeyboardButton(text=_["NEXT_PAGE"], callback_data="mbot_cb"),
         ]
     ]
 
@@ -73,13 +71,12 @@ def fun_panel(_):
                 InlineKeyboardButton(text=_["H_B_16"], callback_data="help_callback hb16"),
                 InlineKeyboardButton(text=_["H_B_17"], callback_data="help_callback hb17"),
                 InlineKeyboardButton(text=_["H_B_22"], callback_data="help_callback hb22"),
-                InlineKeyboardButton(text="🎮 ғᴜɴ ɢᴀᴍᴇ",callback_data="help_callback hb26"),
             ],
             [
                 InlineKeyboardButton(text=_["H_B_25"], callback_data="help_callback hb25"),
                 InlineKeyboardButton(text=_["H_B_27"], callback_data="help_callback hb27"),
                 InlineKeyboardButton(text="✨ ғsᴜʙ",callback_data="help_callback hb20"),
-                ),
+                InlineKeyboardButton(text="🎮 ғᴜɴ ɢᴀᴍᴇ",callback_data="help_callback hb26"),
             ],
             [
                 InlineKeyboardButton(text=_["BACK_BUTTON"], callback_data="back_to_main"),
@@ -125,11 +122,11 @@ def sudoers_panel(_):
             [
                 InlineKeyboardButton(text=_["H_B_7"], callback_data="help_callback hb7"),
                 InlineKeyboardButton(text=_["H_B_4"], callback_data="help_callback hb4"),
-                InlineKeyboardButton(text=_["H_B_5"], callback_data="help_callback hb5"),
             ],
             [
                 InlineKeyboardButton(text=_["H_B_3"], callback_data="help_callback hb3"),
                 InlineKeyboardButton(text=_["H_B_2"], callback_data="help_callback hb2"),
+                InlineKeyboardButton(text=_["H_B_5"], callback_data="help_callback hb5"),
             ],
             [
                 InlineKeyboardButton(text=_["BACK_BUTTON"], callback_data="back_to_main"),
