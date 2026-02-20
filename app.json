@@ -1,5 +1,5 @@
 {
-    "name": "⛦ MUSIC X WAIFU ⛦",
+    "name": "⛦ snowy music ⛦",
     "description": "A Telegram Music Player Bot, written in Python with Pyrogram and Py-Tgcalls.",
     "logo": "https://te.legra.ph/file/62fa7c81c56c1ae31c844.jpg",
     "keywords": [
@@ -24,6 +24,16 @@
       },
       "BOT_TOKEN": {
         "description": "A Bot's token from Botfather",
+        "value": "",
+        "required": true
+      },
+      "OPENAI_API_KEY": {
+        "description": "Your OpenAI API Key for AI moderation system",
+          "value": "",
+        "required": true
+      },
+      "BLACKBOX_API_KEY": {
+        "description": "Your Blackbox API Key",
         "value": "",
         "required": true
       },
@@ -70,4 +80,4 @@
           }
       ],
       "stack": "container"
-  }
+}
