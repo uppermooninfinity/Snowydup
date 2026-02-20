@@ -1,4 +1,6 @@
 import os
+import random 
+
 import re
 from os import getenv
 
