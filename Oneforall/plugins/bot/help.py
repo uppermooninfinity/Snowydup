@@ -52,10 +52,13 @@ async def helper_private(
 @LanguageStart
 async def help_com_group(client, message: Message, _):
     keyboard = private_help_panel(_)
-    await message.reply_video(
-        video="https://files.catbox.moe/dfj9zk.mp4",
-        caption=_["help_2"],
-        reply_markup=InlineKeyboardMarkup(keyboard),
+    await message.reply_photo(
+    photo=config.HELP_IMG_URL,
+    caption=(
+        "❖ ʜᴇʟᴘ ᴍᴀɪɴ ᴍᴇɴᴜ ❖\n\n"
+        "✦ ᴄʜσσsє ᴛʜє ᴄᴧᴛєɢσʀʏ ꜰσʀ ᴡʜɪᴄʜ ʏσᴜ ᴡᴧηηᴧ ɢєᴛ ʜєʟᴘ 🎯✨"
+    ),
+    reply_markup=help_pannel(_)
     )
 
 
