@@ -1,61 +1,102 @@
 import os
-import random 
-
+import random
 import re
 from os import getenv
 
-try:
-    from dotenv import load_dotenv
-    load_dotenv()
-except:
-    pass
-
+from dotenv import load_dotenv
 from pyrogram import filters
 
-# ===== BASIC CONFIG (REHNE DO) =====
+load_dotenv()
 
-API_ID = int(getenv("API_ID", "26950458"))
-API_HASH = getenv("API_HASH", "d818b8d530e4a9b209509815ab1b9c7c")
+# Get this value from my.telegram.org/apps
+API_ID = int(os.getenv("API_ID", "23450648"))
+API_HASH = os.getenv("API_HASH", "177973c53d36a5db484cabfce1b9bf2f")
 
-UPSTREAM_REPO = getenv(
+# Get your token from @BotFather on Telegram.
+BOT_TOKEN = os.getenv("BOT_TOKEN","")
+
+YOUTUBE_API_KEY = os.getenv("")
+# OpenAI Token
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
+# Get your mongo url from cloud.mongodb.com
+MONGO_DB_URI = os.getenv("MONGO_DB_URI", "mongodb+srv://knight4563:knight4563@cluster0.a5br0se.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+MUSIC_BOT_NAME = os.getenv("MUSIC_BOT_NAME", "SNOWY_MUSIC")
+PRIVATE_BOT_MODE = os.getenv("PRIVATE_BOT_MODE", None)
+
+DURATION_LIMIT_MIN = int(os.getenv("DURATION_LIMIT", 100000))
+
+# Chat id of a group for logging bot's activities
+LOGGER_ID = int(os.getenv("LOGGER_ID", -1003228624224))
+
+# Get this value from @BRANDRD_ROBOT on Telegram by /id
+OWNER_ID = int(os.getenv("OWNER_ID", "7651303468"))
+SUDO_USERS = list(map(int, os.getenv("SUDO_USERS", "7487670897").split()))
+
+## Fill these variables if you're deploying on heroku.
+# Your heroku app name
+HEROKU_APP_NAME = os.getenv("HEROKU_APP_NAME")
+# Get it from http://dashboard.heroku.com/account
+HEROKU_API_KEY = os.getenv("HEROKU_API_KEY")
+UPSTREAM_REPO = os.getenv(
     "UPSTREAM_REPO",
     "https://github.com/txkuze/snowy",
 )
-BOT_TOKEN = getenv("BOT_TOKEN", "")
-OPENAI_API_KEY = getenv("OPENAI_API_KEY")
+UPSTREAM_BRANCH = os.getenv("UPSTREAM_BRANCH", "main")
+GIT_TOKEN = os.getenv(
+    "GIT_TOKEN", None
+)  # Fill this variable if your upstream repository is private
 
-MONGO_DB_URI = getenv(
-    "MONGO_DB_URI",
-    "mongodb+srv://knight4563:knight4563@cluster0.a5br0se.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-)
+SUPPORT_CHANNEL = os.getenv("SUPPORT_CHANNEL", "https://t.me/dark_musictm")
+SUPPORT_CHAT = os.getenv("SUPPORT_CHAT", "https://t.me/snowy_hometown")
 
-MUSIC_BOT_NAME = getenv("MUSIC_BOT_NAME", "Infinity_X_Destiny_Bot")
-PRIVATE_BOT_MODE = getenv("PRIVATE_BOT_MODE", None)
+# Set this to True if you want the assistant to automatically leave chats after an interval
+AUTO_LEAVING_ASSISTANT = bool(os.getenv("AUTO_LEAVING_ASSISTANT", False))
 
-DURATION_LIMIT_MIN = int(getenv("DURATION_LIMIT", 100000))
+# Auto Gcast/Broadcast Handler (True = broadcast on , False = broadcast off During Hosting, Dont Do anything here.)
+AUTO_GCAST = os.getenv("AUTO_GCAST")
 
-# ===== LOGGER (REHNE DO) =====
-
-LOGGER_ID = int(getenv("LOGGER_ID", "-1002869205475"))
-GBAN_LOG_CHAT = int(getenv("GBAN_LOG_CHAT", "-1002869205475"))
-
-OWNER_ID = getenv("OWNER_ID", "7487670897")
-SUDO_USERS = getenv("SUDO_USERS", "7487670897")
-
-# ===== HEROKU (AUTO WORK) =====
-
-HEROKU_APP_NAME = getenv("HEROKU_APP_NAME")
-HEROKU_API_KEY = getenv("HEROKU_API_KEY")
-
-# ===== SUPPORT =====
-
-SUPPORT_CHANNEL = getenv("SUPPORT_CHANNEL", "https://t.me/dark_musictm")
-SUPPORT_CHAT = getenv("SUPPORT_CHAT", "https://t.me/cuties_logs")
-
-# ===== IMAGES (REHNE DO BHAI 😄) =====
+# Auto Broadcast Message That You Want Use In Auto Broadcast In All Groups.
+AUTO_GCAST_MSG = os.getenv("AUTO_GCAST_MSG", "")
 
 FORCE_CHANNEL_1 = os.getenv("FORCE_CHANNEL_1", "https://t.me/dark_musictm")
 FORCE_CHANNEL_2 = os.getenv("FORCE_CHANNEL_2", "https://t.me/docker_git_bit")
+
+# Get this credentials from https://developer.spotify.com/dashboard
+SPOTIFY_CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID", "6fb7e1766693439b86ec57e3deb3c36f")
+SPOTIFY_CLIENT_SECRET = os.getenv(
+    "SPOTIFY_CLIENT_SECRET", "da3f94c6a68d49f6b64a7216ec9eb905"
+)
+
+
+# Maximum limit for fetching playlist's track from youtube, spotify, apple links.
+SERVER_PLAYLIST_LIMIT = int(os.getenv("SERVER_PLAYLIST_LIMIT", "1000"))
+PLAYLIST_FETCH_LIMIT = int(os.getenv("PLAYLIST_FETCH_LIMIT", "1000"))
+
+SONG_DOWNLOAD_DURATION = int(os.getenv("SONG_DOWNLOAD_DURATION_LIMIT", "180"))
+SONG_DOWNLOAD_DURATION_LIMIT = int(os.getenv("SONG_DOWNLOAD_DURATION_LIMIT", "2000"))
+
+# Telegram audio and video file size limit (in bytes)
+TG_AUDIO_FILESIZE_LIMIT = int(os.getenv("TG_AUDIO_FILESIZE_LIMIT", 104857600))
+TG_VIDEO_FILESIZE_LIMIT = int(os.getenv("TG_VIDEO_FILESIZE_LIMIT", 1073741824))
+# Checkout https://www.gbmb.org/mb-to-bytes for converting mb to bytes
+
+
+# Get your pyrogram v2 session from @BRANDEDSTRINGSESSION_BOT on Telegram
+STRING1 = os.getenv("STRING_SESSION",  "")
+STRING2 = os.getenv("STRING_SESSION2", None)
+STRING3 = os.getenv("STRING_SESSION3", None)
+STRING4 = os.getenv("STRING_SESSION4", None)
+STRING5 = os.getenv("STRING_SESSION5", None)
+
+
+BANNED_USERS = filters.user()
+TEMP_DB_FOLDER = "tempdb"
+adminlist = {}
+lyrical = {}
+votemode = {}
+autoclean = []
+confirmer = {}
 
 PING_IMG_URL = os.getenv("PING_IMG_URL", "https://files.catbox.moe/nndfm5.jpg")
 PLAYLIST_IMG_URL = "https://files.catbox.moe/nndfm5.jpg"
@@ -80,29 +121,21 @@ else:
         "https://files.catbox.moe/uyps1d.jpg"
     ])
     
-
-# ===== FUNCTIONS =====
-
 def time_to_seconds(time):
     stringt = str(time)
-    return sum(int(x) * 60 ** i for i, x in enumerate(reversed(stringt.split(":"))))
+    return sum(int(x) * 60**i for i, x in enumerate(reversed(stringt.split(":"))))
 
-DURATION_LIMIT = time_to_seconds(f"{DURATION_LIMIT_MIN}:00")
 
-# ===== VALIDATION =====
+DURATION_LIMIT = int(time_to_seconds(f"{DURATION_LIMIT_MIN}:00"))
 
-if SUPPORT_CHANNEL and not re.match(r"^https?://", SUPPORT_CHANNEL):
-    raise SystemExit("SUPPORT_CHANNEL must start with https://")
+if SUPPORT_CHANNEL:
+    if not re.match("(?:http|https)://", SUPPORT_CHANNEL):
+        raise SystemExit(
+            "[ERROR] - Your SUPPORT_CHANNEL url is wrong. Please ensure that it starts with https://"
+        )
 
-if SUPPORT_CHAT and not re.match(r"^https?://", SUPPORT_CHAT):
-    raise SystemExit("SUPPORT_CHAT must start with https://")
-
-# ===== OTHERS =====
-
-BANNED_USERS = filters.user()
-TEMP_DB_FOLDER = "tempdb"
-adminlist = {}
-lyrical = {}
-votemode = {}
-autoclean = []
-confirmer = {}
+if SUPPORT_CHAT:
+    if not re.match("(?:http|https)://", SUPPORT_CHAT):
+        raise SystemExit(
+            "[ERROR] - Your SUPPORT_CHAT url is wrong. Please ensure that it starts with https://"
+        )
