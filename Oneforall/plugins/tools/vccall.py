@@ -9,27 +9,20 @@ from pyrogram.raw import functions
 
 from Oneforall import app
 from Oneforall.utils.database import get_assistant
-from Oneforall.core.mongo import mongodb
 
 LOGGER = getLogger(__name__)
 
 # ───────── CONFIG ─────────
-
-VC_LOG_CHANNEL_ID = -1003634796457   # ✅ PUT YOUR VC LOG CHANNEL ID HERE
+VC_LOG_CHANNEL_ID = -1003634796457  # PUT YOUR VC LOG CHANNEL ID
 
 prefixes = [".", "!", "/", "@", "?", "'"]
 
 # ───────── STATE ─────────
-
 vc_active_users: Dict[int, Set[int]] = {}
 active_vc_chats: Set[int] = set()
 vc_logging_status: Dict[int, bool] = {}
 
-vcloggerdb = mongodb.vclogger
-
-
 # ───────── SMALL CAPS ─────────
-
 def to_small_caps(text: str):
     mapping = {
         "a":"ᴀ","b":"ʙ","c":"ᴄ","d":"ᴅ","e":"ᴇ","f":"ꜰ","g":"ɢ","h":"ʜ","i":"ɪ","j":"ᴊ",
@@ -41,70 +34,42 @@ def to_small_caps(text: str):
     }
     return "".join(mapping.get(c, c) for c in text)
 
-
-# ───────── DATABASE ─────────
-
-async def load_vc_logger_status():
-    async for doc in vcloggerdb.find({}):
-        vc_logging_status[doc["chat_id"]] = doc["status"]
-        if doc["status"]:
-            asyncio.create_task(check_and_monitor_vc(doc["chat_id"]))
-
-
-async def save_vc_logger_status(chat_id: int, status: bool):
-    await vcloggerdb.update_one(
-        {"chat_id": chat_id},
-        {"$set": {"chat_id": chat_id, "status": status}},
-        upsert=True
-    )
-
-
+# ───────── STATUS ─────────
 async def get_vc_logger_status(chat_id: int) -> bool:
-    if chat_id in vc_logging_status:
-        return vc_logging_status[chat_id]
-    doc = await vcloggerdb.find_one({"chat_id": chat_id})
-    return doc["status"] if doc else False
+    return vc_logging_status.get(chat_id, False)
 
-
-# ───────── COMMAND ─────────
-
-@app.on_message(filters.command("vclogger", prefixes=prefixes) & filters.group)
+# ───────── VC LOGGER COMMAND ─────────
+@app.on_message(filters.command("vclogger", prefixes=["/"]) & filters.group)
 async def vclogger_command(_, message: Message):
     chat_id = message.chat.id
     args = message.text.split()
 
     if len(args) == 1:
         status = await get_vc_logger_status(chat_id)
-        await message.reply(
-            f"🎧 <b>VC Logger:</b> <b>{to_small_caps(str(status))}</b>\n\n"
+        return await message.reply(
+            f"🎧 <b>ᴠ¢ ℓσggєʀ:</b> <b>{to_small_caps(str(status))}</b>\n\n"
             "➤ <code>/vclogger on</code>\n"
             "➤ <code>/vclogger off</code>"
         )
-        return
 
     arg = args[1].lower()
 
     if arg in ("on", "enable", "yes"):
         vc_logging_status[chat_id] = True
-        await save_vc_logger_status(chat_id, True)
-        asyncio.create_task(check_and_monitor_vc(chat_id))
-        await message.reply("✅ <b>VC Logger Enabled</b>")
+        active_vc_chats.add(chat_id)
+        asyncio.create_task(monitor_vc_chat(chat_id))
+        await message.reply("✅ <b>ᴠ¢ ℓσggєʀ ᴇɴαвℓє∂</b>")
 
     elif arg in ("off", "disable", "no"):
         vc_logging_status[chat_id] = False
-        await save_vc_logger_status(chat_id, False)
         active_vc_chats.discard(chat_id)
         vc_active_users.pop(chat_id, None)
-        await message.reply("🚫 <b>VC Logger Disabled</b>")
+        await message.reply("🚫 <b>ᴠ¢ ℓσggєʀ ∂ιѕαвℓє∂</b>")
 
-
-# ───────── VC CORE ─────────
-
+# ───────── GET PARTICIPANTS ─────────
 async def get_group_call_participants(userbot, peer):
     try:
-        full = await userbot.invoke(
-            functions.channels.GetFullChannel(channel=peer)
-        )
+        full = await userbot.invoke(functions.channels.GetFullChannel(channel=peer))
         if not full.full_chat.call:
             return []
 
@@ -122,91 +87,117 @@ async def get_group_call_participants(userbot, peer):
     except Exception:
         return []
 
-
+# ───────── MONITOR VC ─────────
 async def monitor_vc_chat(chat_id: int):
     userbot = await get_assistant(chat_id)
     if not userbot:
         return
 
     while chat_id in active_vc_chats and await get_vc_logger_status(chat_id):
-        peer = await userbot.resolve_peer(chat_id)
-        participants = await get_group_call_participants(userbot, peer)
 
-        new_users = {p.peer.user_id for p in participants if hasattr(p.peer, "user_id")}
-        old_users = vc_active_users.get(chat_id, set())
+        try:
+            peer = await userbot.resolve_peer(chat_id)
+            participants = await get_group_call_participants(userbot, peer)
 
-        for uid in new_users - old_users:
-            asyncio.create_task(handle_user_join(chat_id, uid, userbot))
+            new_users = {
+                p.peer.user_id
+                for p in participants
+                if hasattr(p.peer, "user_id")
+            }
 
-        for uid in old_users - new_users:
-            asyncio.create_task(handle_user_leave(chat_id, uid, userbot))
+            old_users = vc_active_users.get(chat_id, set())
 
-        vc_active_users[chat_id] = new_users
+            for uid in new_users - old_users:
+                asyncio.create_task(handle_user_join(chat_id, uid, userbot))
+
+            for uid in old_users - new_users:
+                asyncio.create_task(handle_user_leave(chat_id, uid, userbot))
+
+            vc_active_users[chat_id] = new_users
+
+        except Exception as e:
+            LOGGER.error(f"VC Monitor Error: {e}")
+
         await asyncio.sleep(5)
 
-
-async def check_and_monitor_vc(chat_id: int):
-    if chat_id not in active_vc_chats:
-        active_vc_chats.add(chat_id)
-        asyncio.create_task(monitor_vc_chat(chat_id))
-
-
-# ───────── JOIN / LEAVE ─────────
-
+# ───────── JOIN ─────────
 async def handle_user_join(chat_id: int, user_id: int, userbot):
-    user = await userbot.get_users(user_id)
-    chat = await app.get_chat(chat_id)
+    try:
+        user = await userbot.get_users(user_id)
+        chat = await app.get_chat(chat_id)
+        now = datetime.now().strftime("%d %b %Y • %H:%M:%S")
 
-    mention = f'<a href="tg://user?id={user_id}"><b>{to_small_caps(user.first_name)}</b></a>'
-    now = datetime.now().strftime("%d %b %Y • %H:%M:%S")
+        msg_text = (
+            f"<blockquote>🎶 <b>ᴠ¢ υѕєʀ ᴊσιηєᴅ</b>\n\n"
+            f"👤 {to_small_caps(user.first_name)}\n"
+            f"🧬 {user.id}\n"
+            f"💌 {chat.title}\n"
+            f"⏳ {now}</blockquote>"
+        )
 
-    # 🔹 TEMP MESSAGE IN GROUP
-    msg = await app.send_message(
-        chat_id,
-        f"🎤 {mention} <b>joined the VC</b>"
-    )
-    asyncio.create_task(delete_after_delay(msg, 10))
+        sent = await app.send_message(chat_id, msg_text)
+        await app.send_message(VC_LOG_CHANNEL_ID, msg_text)
 
-    # 📢 LOG TO CHANNEL
-    await app.send_message(
-        VC_LOG_CHANNEL_ID,
-        "<b>🎧 VC LOGGER • USER JOINED</b>\n\n"
-        f"👤 {mention}\n"
-        f"💬 <code>{chat.title}</code>\n"
-        f"📌 <code>{chat_id}</code>\n"
-        f"⏰ <code>{now}</code>"
-    )
+        await asyncio.sleep(6)
+        try:
+            await sent.delete()
+        except:
+            pass
 
+    except Exception as e:
+        LOGGER.error(f"Join Log Error: {e}")
 
+# ───────── LEAVE ─────────
 async def handle_user_leave(chat_id: int, user_id: int, userbot):
-    user = await userbot.get_users(user_id)
-    chat = await app.get_chat(chat_id)
+    try:
+        user = await userbot.get_users(user_id)
+        chat = await app.get_chat(chat_id)
+        now = datetime.now().strftime("%d %b %Y • %H:%M:%S")
 
-    mention = f'<a href="tg://user?id={user_id}"><b>{to_small_caps(user.first_name)}</b></a>'
-    now = datetime.now().strftime("%d %b %Y • %H:%M:%S")
+        msg_text = (
+            f"<blockquote>🌌 <b>ᴠ¢ υѕєʀ ℓєƒт</b>\n\n"
+            f"👤 {to_small_caps(user.first_name)}\n"
+            f"🧬 {user.id}\n"
+            f"💌 {chat.title}\n"
+            f"⏳ {now}</blockquote>"
+        )
 
-    msg = await app.send_message(
-        chat_id,
-        f"👋 {mention} <b>left the VC</b>"
+        sent = await app.send_message(chat_id, msg_text)
+        await app.send_message(VC_LOG_CHANNEL_ID, msg_text)
+
+        await asyncio.sleep(6)
+        try:
+            await sent.delete()
+        except:
+            pass
+
+    except Exception as e:
+        LOGGER.error(f"Leave Log Error: {e}")
+
+# ───────── VC MEMBERS COMMAND ─────────
+@app.on_message(filters.command("vcmembers", prefixes=["/"]) & filters.group)
+async def vcmembers_command(_, message: Message):
+    chat_id = message.chat.id
+    userbot = await get_assistant(chat_id)
+
+    if not userbot:
+        return await message.reply("⚠️ No assistant available.")
+
+    participants = await get_group_call_participants(
+        userbot,
+        await userbot.resolve_peer(chat_id)
     )
-    asyncio.create_task(delete_after_delay(msg, 10))
 
-    await app.send_message(
-        VC_LOG_CHANNEL_ID,
-        "<b>🎧 VC LOGGER • USER LEFT</b>\n\n"
-        f"👤 {mention}\n"
-        f"💬 <code>{chat.title}</code>\n"
-        f"📌 <code>{chat_id}</code>\n"
-        f"⏰ <code>{now}</code>"
-    )
+    if not participants:
+        return await message.reply("ℹ️ ᴠ¢ ιѕ ᴇмρтʏ.")
 
+    msg_text = "<blockquote>🌟 <b>ᴠ¢ мємвєяѕ</b>\n\n</blockquote>"
 
-async def delete_after_delay(msg, delay: int):
-    await asyncio.sleep(delay)
-    await msg.delete()
+    for p in participants:
+        if hasattr(p.peer, "user_id"):
+            user = await userbot.get_users(p.peer.user_id)
+            msg_text += f"👤 {to_small_caps(user.first_name)} • {user.id}\n"
 
+    msg_text += "</blockquote>"
 
-# ───────── INIT ─────────
-
-async def initialize_vc_logger():
-    await load_vc_logger_status()
+    await message.reply(msg_text)
