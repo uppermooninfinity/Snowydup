@@ -7,6 +7,7 @@ dnspython==2.3.0
 hachoir
 heroku3
 motor
+openai
 pillow==9.5.0
 psutil
 wget
