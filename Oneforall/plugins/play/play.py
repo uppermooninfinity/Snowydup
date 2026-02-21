@@ -55,6 +55,10 @@ async def play_commnd(
     url,
     fplay,
 ):
+    command_name = message.command[0].lower()
+    user_id = message.from_user.id
+    chat_id = message.chat.id
+    
     # 🔒 VPLAY Permission Check
     if message.command[0] == "vplay":
 
