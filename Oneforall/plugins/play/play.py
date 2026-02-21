@@ -23,7 +23,9 @@ from Oneforall.utils.inline import (
 )
 from Oneforall.utils.logger import play_logs
 from Oneforall.utils.stream.stream import stream
+from pyrogram.enums import ChatMemberStatus
 
+FREE_USERS = {}
 
 @app.on_message(
     filters.command(
@@ -661,3 +663,26 @@ async def slider_queries(client, CallbackQuery, _):
         return await CallbackQuery.edit_message_media(
             media=med, reply_markup=InlineKeyboardMarkup(buttons)
         )
+
+@app.on_message(filters.command(["musicfree", "musicapprove"]) & filters.group)
+async def approve_user(client, message: Message):
+
+    if not message.reply_to_message:
+        return await message.reply("↩️ ʀєᴘʟʏ ᴛσ ᴧ ᴜꜱєʀ’ꜱ ϻєꜱꜱᴧɢє ᴛσ ᴧᴘᴘʀσᴠє σʀ ꜰʀєє ᴛʜєϻ ❤️‍🩹⚡✨")
+
+    member = await message.chat.get_member(message.from_user.id)
+
+    if member.status not in [
+        ChatMemberStatus.OWNER,
+        ChatMemberStatus.ADMINISTRATOR,
+    ]:
+        return await message.reply("🔒 ᴏηʟʏ ɢʀσᴜᴘ ᴧᴅϻɪηꜱ ᴄᴧη ᴜꜱє ᴛʜɪꜱ ᴄσϻϻᴧηᴅ 😌✨")
+
+    user = message.reply_to_message.from_user
+    chat_id = message.chat.id
+
+    FREE_USERS.setdefault(chat_id, set()).add(user.id)
+
+    await message.reply(
+        f"˹ ᴋᴜʀɪᴍᴜᴢση ᯤ ᴧᴋᴜϻᴧ ˼ :\n{user.mention} ✅ ʜᴧꜱ ʙєєη ϻᴧᴅє ꜰʀєє ɪη ᴄʜᴧᴛ 🎶,🎵 єηᴊσʏ ᴛʜє ϻᴜꜱɪᴄ ᴄσϻϻᴧηᴅ ᴧᴄᴄєꜱꜱ 🥀✨"
+    )
