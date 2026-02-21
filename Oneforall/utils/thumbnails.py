@@ -1,6 +1,5 @@
 import os
-import aiohttp
-import aiofiles
+
 from PIL import Image, ImageDraw, ImageFont
 
 from youtubesearchpython.__future__ import VideosSearch
