@@ -1,145 +1,99 @@
 import os
 import random
-import re
-
-import aiofiles
 import aiohttp
-from PIL import (
-    Image,
-    ImageEnhance,
-    ImageOps,
-    ImageDraw,
-    ImageFont,
-    ImageFilter,
-)
-from youtubesearchpython.__future__ import VideosSearch
+import aiofiles
 
+from PIL import Image, ImageEnhance, ImageOps
 from config import YOUTUBE_IMG_URL
+
+# 🔥 Yaha apna Catbox direct image link daalo
+CUSTOM_THUMB_URL = "https://files.catbox.moe/yourimage.png"
+
+CACHE_DIR = "cache"
+os.makedirs(CACHE_DIR, exist_ok=True)
 
 
 def changeImageSize(maxWidth, maxHeight, image):
-    return image.resize((maxWidth, maxHeight), Image.LANCZOS)
+    widthRatio = maxWidth / image.size[0]
+    heightRatio = maxHeight / image.size[1]
+    newWidth = int(widthRatio * image.size[0])
+    newHeight = int(heightRatio * image.size[1])
+    return image.resize((newWidth, newHeight))
 
 
-def clear(text):
-    words = text.split()
-    title = ""
-    for w in words:
-        if len(title) + len(w) < 60:
-            title += " " + w
-    return title.strip()
+async def download_custom_thumb(videoid):
+    """
+    Download custom catbox image
+    """
+    path = f"{CACHE_DIR}/custom_{videoid}.png"
+
+    if os.path.isfile(path):
+        return path
+
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(CUSTOM_THUMB_URL) as resp:
+                if resp.status == 200:
+                    f = await aiofiles.open(path, mode="wb")
+                    await f.write(await resp.read())
+                    await f.close()
+                    return path
+    except Exception as e:
+        print(f"Thumbnail Download Error: {e}")
+
+    return None
 
 
 async def get_thumb(videoid):
-    final = f"cache/{videoid}.png"
-    temp = f"cache/thumb{videoid}.png"
+    """
+    Always use Custom Catbox Thumbnail
+    """
 
-    if os.path.isfile(final):
-        return final
+    final_path = f"{CACHE_DIR}/{videoid}.png"
+
+    if os.path.isfile(final_path):
+        return final_path
 
     try:
-        search = VideosSearch(
-            f"https://www.youtube.com/watch?v={videoid}", limit=1
-        )
-        result = (await search.next())["result"][0]
+        # 🔥 Download Custom Image
+        thumb_path = await download_custom_thumb(videoid)
 
-        title = clear(
-            re.sub(r"\W+", " ", result.get("title", "Unsupported Title")).title()
-        )
-        duration = result.get("duration", "LIVE")
-        channel = result.get("channel", {}).get("name", "Unknown Channel")
-        thumbnail = result["thumbnails"][-1]["url"].split("?")[0]
+        if not thumb_path:
+            return YOUTUBE_IMG_URL
 
-        # download thumbnail
-        async with aiohttp.ClientSession() as session:
-            async with session.get(thumbnail) as resp:
-                if resp.status == 200:
-                    async with aiofiles.open(temp, "wb") as f:
-                        await f.write(await resp.read())
+        # 🎨 Open Image
+        image = Image.open(thumb_path)
 
-        base = Image.open(temp).convert("RGB")
+        # Resize
+        image = changeImageSize(1280, 720, image)
 
-        # ===== BACKGROUND =====
-        bg = changeImageSize(1280, 720, base)
-        bg = bg.filter(ImageFilter.GaussianBlur(22))
-        bg = ImageEnhance.Brightness(bg).enhance(0.55)
+        # Slight Brightness
+        image = ImageEnhance.Brightness(image).enhance(1.1)
 
-        overlay = Image.new("RGBA", bg.size, (0, 0, 0, 170))
-        bg = Image.alpha_composite(bg.convert("RGBA"), overlay)
+        # Slight Contrast
+        image = ImageEnhance.Contrast(image).enhance(1.1)
 
-        # ===== FOREGROUND CARD =====
-        fg = changeImageSize(720, 405, base)
-        fg = ImageEnhance.Sharpness(fg).enhance(1.4)
+        # Random Border Color
+        colors = [
+            "white", "red", "orange", "yellow",
+            "green", "cyan", "blue",
+            "violet", "magenta", "pink"
+        ]
+        border_color = random.choice(colors)
 
-        mask = Image.new("L", fg.size, 0)
-        mdraw = ImageDraw.Draw(mask)
-        mdraw.rounded_rectangle(
-            [(0, 0), fg.size], radius=30, fill=255
-        )
+        image = ImageOps.expand(image, border=8, fill=border_color)
 
-        card = Image.new("RGBA", fg.size)
-        card.paste(fg, (0, 0), mask)
+        # Save Final Image
+        image.save(final_path)
 
-        shadow = Image.new("RGBA", fg.size, (0, 0, 0, 180))
-        shadow = shadow.filter(ImageFilter.GaussianBlur(25))
-
-        cx = (1280 - fg.width) // 2
-        cy = 100
-
-        bg.paste(shadow, (cx + 12, cy + 18), shadow)
-        bg.paste(card, (cx, cy), card)
-
-        draw = ImageDraw.Draw(bg)
-
-        # ===== PROGRESS BAR =====
-        bar_y = cy + fg.height - 12
-        draw.line(
-            [(cx + 40, bar_y), (cx + 240, bar_y)],
-            fill=(255, 60, 150),
-            width=6,
-        )
-
-        # ===== TEXT =====
+        # Delete temp file
         try:
-            title_font = ImageFont.truetype("Tune/assets/font.ttf", 42)
-            small_font = ImageFont.truetype("Tune/assets/font2.ttf", 28)
-        except:
-            title_font = small_font = ImageFont.load_default()
-
-        draw.text(
-            (cx, cy + fg.height + 40),
-            title,
-            font=title_font,
-            fill="white",
-        )
-
-        draw.text(
-            (cx, cy + fg.height + 95),
-            f"{channel} • {duration}",
-            font=small_font,
-            fill=(190, 190, 190),
-        )
-
-        # ===== POWERED BY =====
-        power = "˹ ROSHNI MUSIC "
-        pw = draw.textlength(power, small_font)
-        px = (1280 - pw) // 2
-
-        draw.text(
-            (px, 650),
-            power,
-            font=small_font,
-            fill=(255, 80, 170),
-        )
-
-        try:
-            os.remove(temp)
+            os.remove(thumb_path)
         except:
             pass
 
-        bg.convert("RGB").save(final, "PNG", quality=95)
-        return final
+        return final_path
 
     except Exception as e:
-        print("THUMB ERROR:", e)
+        print(f"Thumbnail Error: {e}")
         return YOUTUBE_IMG_URL
