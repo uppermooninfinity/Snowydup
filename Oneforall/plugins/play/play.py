@@ -55,6 +55,28 @@ async def play_commnd(
     url,
     fplay,
 ):
+    # 🔒 VPLAY Permission Check
+    if message.command[0] == "vplay":
+
+        user_id = message.from_user.id
+        chat_id = message.chat.id
+
+        member = await message.chat.get_member(user_id)
+
+        # Allow Owner & Admin
+        if member.status in [
+            ChatMemberStatus.OWNER,
+            ChatMemberStatus.ADMINISTRATOR,
+        ]:
+            pass
+        # Allow Approved Users
+        elif chat_id in FREE_USERS and user_id in FREE_USERS[chat_id]:
+            pass
+        else:
+            return await message.reply(
+                "🔒 ᴏηʟʏ ɢʀσᴜᴘ ᴧᴅϻɪηꜱ ᴄᴧη ᴜꜱє ᴛʜɪꜱ ᴄσϻϻᴧηᴅ : /vplay."
+            )
+            
     mystic = await message.reply_text(
         _["play_2"].format(channel) if channel else _["play_1"]
     )
