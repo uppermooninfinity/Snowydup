@@ -1,95 +1,199 @@
-from pyrogram import *
-from pyrogram import filters
-from pyrogram.types import *
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
+from typing import List, Optional, Union
+
+from pyrogram import Client, filters
+from pyrogram.errors import ChatAdminRequired
+from pyrogram.raw.functions.channels import GetFullChannel
+from pyrogram.raw.functions.messages import GetFullChat
+from pyrogram.raw.functions.phone import CreateGroupCall, DiscardGroupCall
+from pyrogram.raw.types import InputGroupCall, InputPeerChannel, InputPeerChat
+from pyrogram.types import ChatPrivileges, Message
 
 from Oneforall import app
+from Oneforall.core.call import Hotty
+from Oneforall.utils.database import get_assistant, set_loop
+from Oneforall.utils.permissions import adminsOnly
+
+other_filters = filters.group & ~filters.via_bot & ~filters.forwarded
+other_filters2 = filters.private & ~filters.via_bot & ~filters.forwarded
 
 
-# vc on
-@app.on_message(filters.video_chat_started)
-async def brah(_, msg):
-    await msg.reply("**☺️ᴠɪᴅᴇᴏ ᴄʜᴀᴛ sᴛᴀʀᴛᴇᴅ🥳**")
+def command(commands: Union[str, List[str]]):
+    return filters.command(commands, "")
 
 
-# vc off
-@app.on_message(filters.video_chat_ended)
-async def brah2(_, msg):
-    await msg.reply("**😕ᴠɪᴅᴇᴏ ᴄʜᴀᴛ ᴇɴᴅᴇᴅ💔**")
-
-
-# invite members on vc
-@app.on_message(filters.video_chat_members_invited)
-async def brah3(app: app, message: Message):
-    text = f"➻ {message.from_user.mention}\n\n**๏ ɪɴᴠɪᴛɪɴɢ ɪɴ ᴠᴄ ᴛᴏ :**\n\n**➻ **"
-    x = 0
-    for user in message.video_chat_members_invited.users:
-        try:
-            text += f"[{user.first_name}](tg://user?id={user.id}) "
-            x += 1
-        except Exception:
-            pass
-
+@app.on_message(filters.video_chat_started & filters.group)
+async def on_vc_start(_, msg):
+    chat_id = msg.chat.id
     try:
-        invite_link = await app.export_chat_invite_link(message.chat.id)
-        add_link = f"https://t.me/{app.username}?startgroup=true"
-        reply_text = f"{text} 🤭🤭"
-
-        await message.reply(
-            reply_text,
-            reply_markup=InlineKeyboardMarkup(
-                [
-                    [InlineKeyboardButton(text="๏ ᴊᴏɪɴ ᴠᴄ ๏", url=add_link)],
-                ]
-            ),
-        )
+        await msg.reply("<b>❤️‍🩹 ᴠɪᴅᴇᴏ ᴄʜᴀᴛ sᴛᴀʀᴛᴇᴅ 🪷</b>")
+        # Remove st_stream call from here - it's causing the error
+        await set_loop(chat_id, 0)
     except Exception as e:
-        print(f"Error: {e}")
+        await msg.reply(f"<b>ᴇʀʀᴏʀ:</b> <code>{e}</code>")
 
 
-####
+async def get_group_call(client: Client, message: Message, err_msg: str = "") -> Optional[InputGroupCall]:
+    assistant = await get_assistant(message.chat.id)
+    chat_peer = await assistant.resolve_peer(message.chat.id)
+    if isinstance(chat_peer, (InputPeerChannel, InputPeerChat)):
+        if isinstance(chat_peer, InputPeerChannel):
+            full_chat = (await assistant.invoke(GetFullChannel(channel=chat_peer))).full_chat
+        elif isinstance(chat_peer, InputPeerChat):
+            full_chat = (await assistant.invoke(GetFullChat(chat_id=chat_peer.chat_id))).full_chat
+        if full_chat is not None:
+            return full_chat.call
+    await message.reply(f"<b>No group voice chat found</b> {err_msg}")
+    return False
 
 
-@app.on_message(filters.command("math", prefixes="/"))
-def calculate_math(client, message):
-    expression = message.text.split("/math ", 1)[1]
+@app.on_message(filters.command(["vcstart", "startvc"], ["/", "!"]))
+@adminsOnly("can_manage_video_chats")
+async def start_group_call(c: Client, m: Message):
+    chat_id = m.chat.id
+    assistant = await get_assistant(chat_id)
+    
+    if assistant is None:
+        await m.reply("<b>Error:</b> Assistant not found!")
+        return
+    
+    ass = await assistant.get_me()
+    assid = ass.id
+
+    msg = await m.reply("<b>Starting the Voice Chat...</b>")
+    
     try:
-        result = eval(expression)
-        response = f"ᴛʜᴇ ʀᴇsᴜʟᴛ ɪs : {result}"
-    except:
-        response = "ɪɴᴠᴀʟɪᴅ ᴇxᴘʀᴇssɪᴏɴ"
-    message.reply(response)
+        peer = await assistant.resolve_peer(chat_id)
+        await assistant.invoke(
+            CreateGroupCall(
+                peer=InputPeerChannel(
+                    channel_id=peer.channel_id,
+                    access_hash=peer.access_hash,
+                ),
+                random_id=assistant.rnd_id() // 9000000000,
+            )
+        )
+        await msg.edit_text("<b>🎧 Voice Chat Started Successfully ⚡️</b>")
+        await set_loop(chat_id, 0)
+
+    except ChatAdminRequired:
+        try:
+            await app.promote_chat_member(
+                chat_id,
+                assid,
+                privileges=ChatPrivileges(
+                    can_manage_chat=False,
+                    can_delete_messages=False,
+                    can_manage_video_chats=True,
+                    can_restrict_members=False,
+                    can_change_info=False,
+                    can_invite_users=False,
+                    can_pin_messages=False,
+                    can_promote_members=False,
+                ),
+            )
+
+            peer = await assistant.resolve_peer(chat_id)
+            await assistant.invoke(
+                CreateGroupCall(
+                    peer=InputPeerChannel(
+                        channel_id=peer.channel_id,
+                        access_hash=peer.access_hash,
+                    ),
+                    random_id=assistant.rnd_id() // 9000000000,
+                )
+            )
+
+            await app.promote_chat_member(
+                chat_id,
+                assid,
+                privileges=ChatPrivileges(
+                    can_manage_chat=False,
+                    can_delete_messages=False,
+                    can_manage_video_chats=False,
+                    can_restrict_members=False,
+                    can_change_info=False,
+                    can_invite_users=False,
+                    can_pin_messages=False,
+                    can_promote_members=False,
+                ),
+            )
+
+            await msg.edit_text("<b>🎧 Voice Chat Started Successfully ⚡️</b>")
+            await set_loop(chat_id, 0)
+            
+        except Exception as e:
+            await msg.edit_text(f"<b>❌ Give the bot full permissions and try again.</b>\n<code>{e}</code>")
 
 
-@app.on_message(filters.command(["spg"], ["/", "!", "."]))
-async def search(event):
-    msg = await event.respond("Searching...")
-    async with aiohttp.ClientSession() as session:
-        start = 1
-        async with session.get(
-            f"https://content-customsearch.googleapis.com/customsearch/v1?cx=ec8db9e1f9e41e65e&q={event.text.split()[1]}&key=AIzaSyAa8yy0GdcGPHdtD083HiGGx_S0vMPScDM&start={start}",
-            headers={"x-referer": "https://explorer.apis.google.com"},
-        ) as r:
-            response = await r.json()
-            result = ""
+@app.on_message(filters.command(["vcend", "endvc"], ["/", "!"]))
+@adminsOnly("can_manage_video_chats")
+async def stop_group_call(c: Client, m: Message):
+    chat_id = m.chat.id
+    assistant = await get_assistant(chat_id)
+    
+    if assistant is None:
+        await m.reply("<b>Error:</b> Assistant not found!")
+        return
+    
+    ass = await assistant.get_me()
+    assid = ass.id
 
-            if not response.get("items"):
-                return await msg.edit("No results found!")
-            for item in response["items"]:
-                title = item["title"]
-                link = item["link"]
-                if "/s" in item["link"]:
-                    link = item["link"].replace("/s", "")
-                elif re.search(r"\/\d", item["link"]):
-                    link = re.sub(r"\/\d", "", item["link"])
-                if "?" in link:
-                    link = link.split("?")[0]
-                if link in result:
-                    # remove duplicates
-                    continue
-                result += f"{title}\n{link}\n\n"
-            prev_and_next_btns = [
-                Button.inline("▶️Next▶️", data=f"next {start+10} {event.text.split()[1]}")
-            ]
-            await msg.edit(result, link_preview=False, buttons=prev_and_next_btns)
-            await session.close()
+    msg = await m.reply("<b>Closing the Voice Chat...</b>")
+    
+    try:
+        group_call = await get_group_call(assistant, m, err_msg=", Voice Chat Already Ended")
+        if not group_call:
+            await msg.delete()
+            return
+            
+        await assistant.invoke(DiscardGroupCall(call=group_call))
+        await msg.edit_text("<b>🎧 Voice Chat Closed Successfully ⚡️</b>")
+        await set_loop(chat_id, 0)
+
+    except Exception as e:
+        if "GROUPCALL_FORBIDDEN" in str(e):
+            try:
+                await app.promote_chat_member(
+                    chat_id,
+                    assid,
+                    privileges=ChatPrivileges(
+                        can_manage_chat=False,
+                        can_delete_messages=False,
+                        can_manage_video_chats=True,
+                        can_restrict_members=False,
+                        can_change_info=False,
+                        can_invite_users=False,
+                        can_pin_messages=False,
+                        can_promote_members=False,
+                    ),
+                )
+                
+                group_call = await get_group_call(assistant, m, err_msg=", Voice Chat Already Ended")
+                if not group_call:
+                    await msg.delete()
+                    return
+                    
+                await assistant.invoke(DiscardGroupCall(call=group_call))
+                
+                await app.promote_chat_member(
+                    chat_id,
+                    assid,
+                    privileges=ChatPrivileges(
+                        can_manage_chat=False,
+                        can_delete_messages=False,
+                        can_manage_video_chats=False,
+                        can_restrict_members=False,
+                        can_change_info=False,
+                        can_invite_users=False,
+                        can_pin_messages=False,
+                        can_promote_members=False,
+                    ),
+                )
+                
+                await msg.edit_text("<b>🥀 Voice Chat Closed Successfully ⚡️</b>")
+                await set_loop(chat_id, 0)
+                
+            except Exception as ex:
+                await msg.edit_text(f"<b>🩷 Give the bot full permissions and try again.</b>\n<code>{ex}</code>")
+        else:
+            await msg.edit_text(f"<b>Error:</b> <code>{e}</code>")
