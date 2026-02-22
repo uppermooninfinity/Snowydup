@@ -60,7 +60,7 @@ async def play_commnd(
     user_id = message.from_user.id
     chat_id = message.chat.id
     
-    # 🔒 VPLAY Permission Check
+    # 🔒 VPLAY Permission Check yahise lock lagega 
     if message.command[0] == "vplay":
 
         user_id = message.from_user.id
