@@ -5,24 +5,21 @@ from pyrogram.types import Message
 from pyrogram.enums import ChatMemberStatus
 from Oneforall import app
 
-# 🔐 Load from environment
+
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 OPENAI_API_URL = os.getenv("OPENAI_API_URL", "https://api.openai.com/v1/chat/completions")
 
-# 🧠 Store enabled chats (memory based)
+
 CHATBOT_ENABLED = set()
 
 
-# ==============================
-# 🔘 TOGGLE COMMAND
-# ==============================
 @app.on_message(filters.command(["chatbot"]) & filters.group)
 async def toggle_chatbot(client, message: Message):
 
     if len(message.command) < 2:
         return await message.reply_text("Usage:\n/chatbot on\n/chatbot off")
 
-    # Only admins can toggle
+
     member = await app.get_chat_member(message.chat.id, message.from_user.id)
 
     if member.status not in [ChatMemberStatus.OWNER, ChatMemberStatus.ADMINISTRATOR]:
@@ -41,9 +38,6 @@ async def toggle_chatbot(client, message: Message):
         await message.reply_text("Use:\n/chatbot on\n/chatbot off")
 
 
-# ==============================
-# 💬 GROUP AUTO REPLY
-# ==============================
 @app.on_message(filters.group & ~filters.command(["chatbot"]) & ~filters.via_bot & ~filters.forwarded)
 async def group_chatbot(client, message: Message):
 
@@ -61,9 +55,6 @@ async def group_chatbot(client, message: Message):
         await message.reply_text(response)
 
 
-# ==============================
-# 🔹 PRIVATE AUTO REPLY (Always ON)
-# ==============================
 @app.on_message(filters.private & ~filters.via_bot & ~filters.forwarded)
 async def private_chatbot(client, message: Message):
 
@@ -76,9 +67,6 @@ async def private_chatbot(client, message: Message):
         await message.reply_text(response)
 
 
-# ==============================
-# 🌐 OPENAI API FETCH (Direct HTTP)
-# ==============================
 async def generate_response(prompt: str):
 
     if not OPENAI_API_KEY:
