@@ -31,7 +31,6 @@ LOGGER_ID = int(os.getenv("LOGGER_ID", -1003228624224))
 
 # Get this value from @BRANDRD_ROBOT on Telegram by /id
 OWNER_ID = int(os.getenv("OWNER_ID", "7651303468"))
-SUDO_USERS = list(map(int, os.getenv("SUDO_USERS", "7487670897").split()))
 
 ## Fill these variables if you're deploying on heroku.
 # Your heroku app name
