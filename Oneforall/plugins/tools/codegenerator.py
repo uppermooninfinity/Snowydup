@@ -3,9 +3,6 @@ import aiohttp
 from pyrogram import Client, filters
 from pyrogram.types import Message
 
-# ==========================================
-# CONFIGURATION (Heroku / Environment Vars)
-# ==========================================
 
 API_ID = os.getenv("API_ID")
 API_HASH = os.getenv("API_HASH")
@@ -23,9 +20,6 @@ if not all([API_ID, API_HASH, BOT_TOKEN, BLACKBOX_API_KEY]):
         "Please set API_ID, API_HASH, BOT_TOKEN, and BLACKBOX_API_KEY in environment variables."
     )
 
-# ==========================================
-# SUPPORTED LANGUAGES
-# ==========================================
 
 LANGUAGES = {
     "py": "python",
@@ -44,10 +38,6 @@ LANGUAGES = {
     "php": "php",
 }
 
-# ==========================================
-# BOT CLIENT
-# ==========================================
-
 app = Client(
     "code_generator_bot",
     api_id=int(API_ID),
@@ -55,9 +45,6 @@ app = Client(
     bot_token=BOT_TOKEN,
 )
 
-# ==========================================
-# API CALL FUNCTION (ASYNC)
-# ==========================================
 
 async def get_code_from_blackbox(language: str, prompt: str) -> str:
 
@@ -96,17 +83,13 @@ async def get_code_from_blackbox(language: str, prompt: str) -> str:
         return f"Error: {str(e)}"
 
 
-# ==========================================
-# COMMAND HANDLER
-# ==========================================
-
 @app.on_message(filters.command("code") & (filters.private | filters.group))
 async def handle_code_generation(client: Client, message: Message):
 
     if not message.text:
         return
 
-    cmd = message.command[0]  # e.g. codepy
+    cmd = message.command[0]  
     lang_key = cmd.replace("code", "")
 
     if lang_key not in LANGUAGES:
@@ -157,10 +140,6 @@ async def handle_code_generation(client: Client, message: Message):
         if os.path.exists(file_name):
             os.remove(file_name)
 
-
-# ==========================================
-# START BOT
-# ==========================================
 
 print("🤖 Code Generator Bot Started...")
 app.run()
