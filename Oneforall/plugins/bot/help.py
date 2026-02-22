@@ -56,7 +56,7 @@ async def help_com_group(client, message: Message, _):
     photo=config.HELP_IMG_URL,
     caption=(
         "❖ ʜᴇʟᴘ ᴍᴀɪɴ ᴍᴇɴᴜ ❖\n\n"
-        "✦ ᴄʜσσsє ᴛʜє ᴄᴧᴛєɢσʀʏ ꜰσʀ ᴡʜɪᴄʜ ʏσᴜ ᴡᴧηηᴧ ɢєᴛ ʜєʟᴘ 🎯✨"
+        "✦ ᴄʜσσsє ᴛʜє ᴄᴧᴛєɢσʀʏ ꜰσʀ ᴡʜɪᴄʜ ʏσᴜ ᴡᴧηηᴧ ɢєᴛ ʜєʟᴘ 🎀✨"
     ),
     reply_markup=help_pannel(_)
     )
