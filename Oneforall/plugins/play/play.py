@@ -14,6 +14,7 @@ from Oneforall.utils.channelplay import get_channeplayCB
 from Oneforall.utils.decorators.language import languageCB
 from Oneforall.utils.decorators.play import PlayWrapper
 from Oneforall.utils.formatters import formats
+from Oneforall.utils.thumbnail import get_thumb
 from Oneforall.utils.inline import (
     botplaylist_markup,
     livestream_markup,
@@ -207,7 +208,7 @@ async def play_commnd(
                 except:
                     return await mystic.edit_text(_["play_3"])
                 streamtype = "youtube"
-                img = details["thumb"]
+                img = await get_thumb(track_id)
                 cap = _["play_10"].format(
                     details["title"],
                     details["duration_min"],
@@ -224,7 +225,7 @@ async def play_commnd(
                 except:
                     return await mystic.edit_text(_["play_3"])
                 streamtype = "youtube"
-                img = details["thumb"]
+                img = await get_thumb(track_id)
                 cap = _["play_10"].format(details["title"], details["duration_min"])
             elif "playlist" in url:
                 try:
@@ -262,7 +263,7 @@ async def play_commnd(
                 except:
                     return await mystic.edit_text(_["play_3"])
                 streamtype = "youtube"
-                img = details["thumb"]
+                img = await get_thumb(track_id)
                 cap = _["play_10"].format(details["title"], details["duration_min"])
             elif "playlist" in url:
                 spotify = True
@@ -282,7 +283,7 @@ async def play_commnd(
             except:
                 return await mystic.edit_text(_["play_3"])
             streamtype = "youtube"
-            img = details["thumb"]
+            img = await get_thumb(track_id)
             cap = _["play_10"].format(details["title"], details["duration_min"])
         elif await SoundCloud.valid(url):
             try:
@@ -435,7 +436,7 @@ async def play_commnd(
                 )
                 await mystic.delete()
                 await message.reply_photo(
-                    photo=details["thumb"],
+                    img = await get_thumb(track_id),
                     caption=_["play_10"].format(
                         details["title"].title(),
                         details["duration_min"],
@@ -659,7 +660,7 @@ async def slider_queries(client, CallbackQuery, _):
         title, duration_min, thumbnail, vidid = await YouTube.slider(query, query_type)
         buttons = slider_markup(_, vidid, user_id, query, query_type, cplay, fplay)
         med = InputMediaPhoto(
-            media=thumbnail,
+            media= await get_thumb(track_id),
             caption=_["play_10"].format(
                 title.title(),
                 duration_min,
@@ -680,7 +681,7 @@ async def slider_queries(client, CallbackQuery, _):
         title, duration_min, thumbnail, vidid = await YouTube.slider(query, query_type)
         buttons = slider_markup(_, vidid, user_id, query, query_type, cplay, fplay)
         med = InputMediaPhoto(
-            media=thumbnail,
+            media= await get_thumb(track_id),
             caption=_["play_10"].format(
                 title.title(),
                 duration_min,
