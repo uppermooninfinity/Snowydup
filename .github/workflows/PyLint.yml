@@ -1,35 +1,30 @@
-name: PyLint
+name: PyLint Check
 
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
 
 jobs:
-  PEP8:
+  pylint:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Setup Python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v4
         with:
-          python-version: 3.14.2
-      - name: Install Python lint libraries
+          python-version: "3.10"
+
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+
+      - name: Install dependencies
         run: |
-          pip install autoflake isort black
-      - name: Remove unused imports and variables
+          pip install pylint
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Run PyLint
         run: |
-          autoflake --in-place --recursive --remove-all-unused-imports --ignore-init-module-imports .
-      - name: lint with isort
-        run: |
-          isort .
-      - name: lint with black
-        run: |
-          black .
-      # commit changes
-      - uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          commit_message: 'Auto Fixes' 
-          commit_options: '--no-verify'
-          repository: .
-          commit_user_name: itzarjuna1
-          commit_user_email: vezinfinity@gmail.com
-          commit_author: itzarjuna1 <vezinfinity@gmail.com>
+          pylint $(git ls-files '*.py')
