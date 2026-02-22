@@ -35,7 +35,7 @@ async def toggle_chatbot(client, message: Message):
         CHATBOT_ENABLED.discard(chat_id)
         await message.reply_text("🚫 Chatbot Disabled in this group.")
     else:
-        await message.reply_text("Use:\n/chatbot on\n/chatbot off")
+        await message.reply_text("Use:\n/chatbot on\n/chatbot is off")
 
 
 @app.on_message(filters.group & ~filters.command(["chatbot"]) & ~filters.via_bot & ~filters.forwarded)
