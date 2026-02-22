@@ -4,7 +4,7 @@ from pyrogram.errors import ChatAdminRequired, UserNotParticipant, ChatWriteForb
 from pyrogram.enums import ParseMode  # ✅ Use Enum instead of raw string
 from Oneforall import app
 
-MUST_JOIN = "cyber_github"  # Username or chat ID
+MUST_JOIN = "dark_musictm"  # Username or chat ID
 
 @app.on_message(filters.incoming & filters.private, group=-1)
 async def must_join_channel(app: Client, msg: Message):
