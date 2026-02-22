@@ -1,32 +1,30 @@
 import os
-
 from PIL import Image, ImageDraw, ImageFont
-
 from youtubesearchpython.__future__ import VideosSearch
-from config import YOUTUBE_IMG_URL
 
 CACHE_DIR = "cache"
-BASE_IMAGE = "assets/background.png"  # 🔥 Yaha apni image ka path daal do
+BASE_IMAGE = "assets/background.png"  # Apni custom background
+FONT_PATH = "assets/font.ttf"        # Apna font file
 
 os.makedirs(CACHE_DIR, exist_ok=True)
 
 
 def format_duration(duration):
-    if duration:
-        return duration
-    return "0:00"
+    return duration if duration else "0:00"
 
 
 async def get_video_info(videoid):
     url = f"https://www.youtube.com/watch?v={videoid}"
     try:
         results = VideosSearch(url, limit=1)
-        for result in (await results.next())["result"]:
+        data = await results.next()
+        for result in data["result"]:
             title = result.get("title", "Unknown Title")
             duration = result.get("duration", "0:00")
             return title, duration
-    except:
-        pass
+    except Exception as e:
+        print("Video Info Error:", e)
+
     return "Unknown Title", "0:00"
 
 
@@ -39,17 +37,21 @@ async def get_thumb(videoid):
     try:
         title, duration = await get_video_info(videoid)
 
-        # Open base background
+        # Open background
         image = Image.open(BASE_IMAGE).convert("RGBA")
-        draw = ImageDraw.Draw(image)
-
         width, height = image.size
 
-        # Load fonts (apne font file daal sakte ho)
-        font_title = ImageFont.truetype("assets/font.ttf", 55)
-        font_small = ImageFont.truetype("assets/font.ttf", 35)
+        draw = ImageDraw.Draw(image)
 
-        # Dark gradient bottom box
+        # Load font safely
+        try:
+            font_title = ImageFont.truetype(FONT_PATH, 55)
+            font_small = ImageFont.truetype(FONT_PATH, 35)
+        except:
+            font_title = ImageFont.load_default()
+            font_small = ImageFont.load_default()
+
+        # Dark overlay bottom
         overlay = Image.new("RGBA", image.size, (0, 0, 0, 0))
         overlay_draw = ImageDraw.Draw(overlay)
         overlay_draw.rectangle(
@@ -60,13 +62,10 @@ async def get_thumb(videoid):
 
         draw = ImageDraw.Draw(image)
 
-        # 🎧 Apple Music style Earbuds symbol
-        earbuds_icon = "🎧"
-
-        # Song Title
+        # Title
         draw.text(
             (100, height - 210),
-            f"{earbuds_icon} {title[:40]}",
+            f"🎧 {title[:40]}",
             font=font_title,
             fill="white",
         )
@@ -79,19 +78,17 @@ async def get_thumb(videoid):
             fill="white",
         )
 
-        # Progress bar (static style)
+        # Progress bar
         bar_x = 100
         bar_y = height - 80
         bar_width = width - 200
         bar_height = 12
 
-        # Background bar
         draw.rectangle(
             [(bar_x, bar_y), (bar_x + bar_width, bar_y + bar_height)],
             fill=(100, 100, 100),
         )
 
-        # Played part (random for style)
         progress = int(bar_width * 0.3)
         draw.rectangle(
             [(bar_x, bar_y), (bar_x + progress, bar_y + bar_height)],
@@ -104,5 +101,5 @@ async def get_thumb(videoid):
         return final_path
 
     except Exception as e:
-        print(e)
-        return YOUTUBE_IMG_URL
+        print("Thumbnail Generation Error:", e)
+        return BASE_IMAGE  # 🔥 Only custom fallback, NEVER YouTube
