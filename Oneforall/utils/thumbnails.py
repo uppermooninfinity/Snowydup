@@ -1,10 +1,11 @@
 import os
 from PIL import Image, ImageDraw, ImageFont
 from youtubesearchpython.__future__ import VideosSearch
+import config
 
 CACHE_DIR = "cache"
-BASE_IMAGE = "assets/background.png"  # Apni custom background
-FONT_PATH = "assets/font.ttf"        # Apna font file
+BASE_IMAGE = "assets/background.png"
+FONT_PATH = "assets/font.ttf"
 
 os.makedirs(CACHE_DIR, exist_ok=True)
 
@@ -28,6 +29,7 @@ async def get_video_info(videoid):
     return "Unknown Title", "0:00"
 
 
+# 🔥 Stream.py will call THIS
 async def get_thumb(videoid):
     final_path = f"{CACHE_DIR}/{videoid}.png"
 
@@ -35,15 +37,14 @@ async def get_thumb(videoid):
         return final_path
 
     try:
+        # Only getting title & duration (NOT thumbnail image)
         title, duration = await get_video_info(videoid)
 
-        # Open background
         image = Image.open(BASE_IMAGE).convert("RGBA")
         width, height = image.size
 
         draw = ImageDraw.Draw(image)
 
-        # Load font safely
         try:
             font_title = ImageFont.truetype(FONT_PATH, 55)
             font_small = ImageFont.truetype(FONT_PATH, 35)
@@ -102,4 +103,4 @@ async def get_thumb(videoid):
 
     except Exception as e:
         print("Thumbnail Generation Error:", e)
-        return BASE_IMAGE  # 🔥 Only custom fallback, NEVER YouTube
+        return config.YOUTUBE_IMG_URL
