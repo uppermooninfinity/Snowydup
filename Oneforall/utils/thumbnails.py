@@ -29,7 +29,7 @@ async def get_video_info(videoid):
     return "Unknown Title", "0:00"
 
 
-# 🔥 Stream.py will call THIS
+# 🔥 Stream.py will call THisS
 async def get_thumb(videoid):
     final_path = f"{CACHE_DIR}/{videoid}.png"
 
