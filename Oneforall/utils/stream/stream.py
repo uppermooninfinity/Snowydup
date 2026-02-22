@@ -18,7 +18,7 @@ from Oneforall.utils.inline import (
 )
 from Oneforall.utils.stream.queue import put_queue, put_queue_index
 
-# ✅ Import your custom thumbnail generator
+# ✅ Import your custom thumbnail generrators
 from Oneforall.utils.thumbnail import gen_thumb
 
 
