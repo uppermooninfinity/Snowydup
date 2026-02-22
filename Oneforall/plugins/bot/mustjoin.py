@@ -2,7 +2,7 @@ from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message
 from pyrogram.errors import ChatAdminRequired, UserNotParticipant, ChatWriteForbidden
 from pyrogram.enums import ParseMode  # ✅ Use Enum instead of raw string
-from VILLAIN_MUSIC import app
+from Oneforall import app
 
 MUST_JOIN = "cyber_github"  # Username or chat ID
 
