@@ -40,7 +40,7 @@ HEROKU_APP_NAME = os.getenv("HEROKU_APP_NAME")
 HEROKU_API_KEY = os.getenv("HEROKU_API_KEY")
 UPSTREAM_REPO = os.getenv(
     "UPSTREAM_REPO",
-    "https://github.com/txkuze/snowy",
+    "https://github.com/uppermooninfinity/Snowydup",
 )
 UPSTREAM_BRANCH = os.getenv("UPSTREAM_BRANCH", "main")
 GIT_TOKEN = os.getenv(
