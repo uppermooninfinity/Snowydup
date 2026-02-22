@@ -17,7 +17,7 @@ BLACKBOX_MODEL = os.getenv("BLACKBOX_MODEL", "gpt-3.5-turbo")
 
 if not all([API_ID, API_HASH, BOT_TOKEN, BLACKBOX_API_KEY]):
     raise ValueError(
-        "Please set API_ID, API_HASH, BOT_TOKEN, and BLACKBOX_API_KEY in environment variables."
+        "Please set the API_ID, API_HASH, BOT_TOKEN, and BLACKBOX_API_KEY in environment variables."
     )
 
 
