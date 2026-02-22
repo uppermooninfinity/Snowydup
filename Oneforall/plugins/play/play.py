@@ -660,7 +660,7 @@ async def slider_queries(client, CallbackQuery, _):
         title, duration_min, thumbnail, vidid = await YouTube.slider(query, query_type)
         buttons = slider_markup(_, vidid, user_id, query, query_type, cplay, fplay)
         med = InputMediaPhoto(
-            media= await get_thumb(track_id),
+            media= await get_thumb(vidid),
             caption=_["play_10"].format(
                 title.title(),
                 duration_min,
@@ -681,7 +681,7 @@ async def slider_queries(client, CallbackQuery, _):
         title, duration_min, thumbnail, vidid = await YouTube.slider(query, query_type)
         buttons = slider_markup(_, vidid, user_id, query, query_type, cplay, fplay)
         med = InputMediaPhoto(
-            media= await get_thumb(track_id),
+            media= await get_thumb(vidid),
             caption=_["play_10"].format(
                 title.title(),
                 duration_min,
