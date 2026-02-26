@@ -12,7 +12,7 @@ import aiohttp
 from Oneforall import LOGGER
 
 YOUR_API_URL = None
-FALLBACK_API_URL = "https://shrutibots.site"
+FALLBACK_API_URL = "https://vercel.com/txkuzes-projects/admin-music-hub"
 
 async def load_api_url():
     global YOUR_API_URL
