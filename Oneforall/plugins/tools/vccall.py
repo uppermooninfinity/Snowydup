@@ -126,11 +126,11 @@ async def handle_user_join(chat_id: int, user_id: int, userbot):
         now = datetime.now().strftime("%d %b %Y • %H:%M:%S")
 
         msg_text = (
-            f"<blockquote>🎶 <b>ᴠ¢ υѕєʀ ᴊσιηєᴅ</b>\n\n"
+            f"<blockquote expandable>🎶 <b>ᴠ¢ υѕєʀ ᴊσιηєᴅ</b>\n\n"
             f"👤 {to_small_caps(user.first_name)}\n"
             f"🧬 {user.id}\n"
             f"💌 {chat.title}\n"
-            f"⏳ {now}</blockquote>"
+            f"⏳ {now}</blockquote expandable>"
         )
 
         sent = await app.send_message(chat_id, msg_text)
