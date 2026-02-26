@@ -15,8 +15,6 @@ LOGGER = getLogger(__name__)
 # ───────── CONFIG ─────────
 VC_LOG_CHANNEL_ID = -1003634796457  # PUT YOUR VC LOG CHANNEL ID
 
-prefixes = [".", "!", "/", "@", "?", "'"]
-
 # ───────── STATE ─────────
 vc_active_users: Dict[int, Set[int]] = {}
 active_vc_chats: Set[int] = set()
@@ -138,7 +136,7 @@ async def handle_user_join(chat_id: int, user_id: int, userbot):
         sent = await app.send_message(chat_id, msg_text)
         await app.send_message(VC_LOG_CHANNEL_ID, msg_text)
 
-        await asyncio.sleep(6)
+        await asyncio.sleep(4)
         try:
             await sent.delete()
         except:
@@ -165,7 +163,7 @@ async def handle_user_leave(chat_id: int, user_id: int, userbot):
         sent = await app.send_message(chat_id, msg_text)
         await app.send_message(VC_LOG_CHANNEL_ID, msg_text)
 
-        await asyncio.sleep(6)
+        await asyncio.sleep(4)
         try:
             await sent.delete()
         except:
@@ -175,7 +173,7 @@ async def handle_user_leave(chat_id: int, user_id: int, userbot):
         LOGGER.error(f"Leave Log Error: {e}")
 
 # ───────── VC MEMBERS COMMAND ─────────
-@app.on_message(filters.command("vcmembers", prefixes=["/"]) & filters.group)
+@app.on_message(filters.command(["vcmembers", "seevc"], prefixes=["/"]) & filters.group)
 async def vcmembers_command(_, message: Message):
     chat_id = message.chat.id
     userbot = await get_assistant(chat_id)
@@ -189,14 +187,32 @@ async def vcmembers_command(_, message: Message):
     )
 
     if not participants:
-        return await message.reply("ℹ️ ᴠ¢ ιѕ ᴇмρтʏ.")
+        return await message.reply("ℹ️ ᴠ¢ ɪѕ ᴇᴍᴘᴛʏ.")
 
-    msg_text = "<blockquote>🌟 <b>ᴠ¢ мємвєяѕ</b>\n\n</blockquote>"
+    msg_text = "<blockquote>🌟 <b>ᴠ¢ мємвєяѕ</b>\n\n"
 
     for p in participants:
         if hasattr(p.peer, "user_id"):
             user = await userbot.get_users(p.peer.user_id)
-            msg_text += f"👤 {to_small_caps(user.first_name)} • {user.id}\n"
+
+            video = getattr(p, "video", False)
+            screen = getattr(p, "presentation", False)
+            hand = getattr(p, "raise_hand_rating", None) is not None
+            muted = getattr(p, "muted", False)
+            speaking = getattr(p, "active_date", None) is not None
+            left = getattr(p, "left", False)
+
+            msg_text += (
+                f"<blockquote expandable>➜ɴᴀᴍᴇ: {user.first_name}\n"
+                f" ɪᴅ: {user.id}\n"
+                f" ᴜsᴇʀɴᴀᴍᴇ: @{user.username if user.username else 'None'}\n"
+                f" ᴠɪᴅᴇᴏ sʜᴀʀɪɴɢ: {video}\n"
+                f" sᴄʀᴇᴇɴ sʜᴀʀɪɴɢ: {screen}\n"
+                f" ɪs ʜᴀɴᴅ ʀᴀɪsᴇᴅ: {hand}\n"
+                f" ᴍᴜᴛᴇᴅ: {muted}\n"
+                f" <b>sᴘᴇᴀᴋɪɴɢ</b>: {speaking}\n"
+                f" <b>ʟᴇғᴛᴇᴅ ғʀᴏᴍ ɢʀᴏᴜᴘ:</b> {left}</blockquote expandable>\n\n"
+            )
 
     msg_text += "</blockquote>"
 
