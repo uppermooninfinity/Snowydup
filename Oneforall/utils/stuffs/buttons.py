@@ -35,7 +35,7 @@ class BUTTONS(object):
         ],
         [
             InlineKeyboardButton("◄", callback_data=f"settings_back_helper"),
-            InlineKeyboardButton("ᯤ ʜᴏᴍᴇ ᯤ", callback_data=f"settings_back_helper"),
+            InlineKeyboardButton("ᯤʜᴏᴍᴇᯤ", callback_data=f"settings_back_helper"),
             InlineKeyboardButton(
                 "►", callback_data=f"managebot123 settings_back_helper"
             ),
