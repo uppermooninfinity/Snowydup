@@ -5,7 +5,7 @@ from pyrogram.types import Message
 from pyrogram.errors import RPCError
 from Oneforall import app
 from Oneforall.utils.database import fedsdb, fedbansdb
-from config import OWNER_ID
+from config import OWNER_ID, FED_LOG_CHANNEL
 
 
 # ─────────────────────────────
@@ -23,18 +23,37 @@ def sc(t): return t.translate(SMALL)
 # ─────────────────────────────
 # Helpers
 # ─────────────────────────────
+async def controller_log(client, text: str):
+    if not FED_LOG_CHANNEL:
+        return
+    try:
+        await client.send_message(FED_LOG_CHANNEL, text)
+    except Exception:
+        pass
 
-async def get_fed_by_chat(chat_id):
+
+async def get_fed_by_chat(chat_id: int):
+    if not chat_id:
+        return None
     return await fedsdb.find_one({"chats": chat_id})
 
-async def get_fed_by_id(fed_id):
+
+async def get_fed_by_id(fed_id: str):
+    if not fed_id:
+        return None
     return await fedsdb.find_one({"fed_id": fed_id})
 
-async def is_owner(fed, user):
-    return fed["owner"] == user
 
-async def is_admin(fed, user):
-    return user == fed["owner"] or user in fed.get("admins", [])
+def is_owner(fed: dict, user_id: int):
+    if not fed:
+        return False
+    return fed.get("owner") == user_id
+
+
+def is_admin(fed: dict, user_id: int):
+    if not fed:
+        return False
+    return user_id == fed.get("owner") or user_id in fed.get("admins", [])
 
 
 # ─────────────────────────────
@@ -42,7 +61,7 @@ async def is_admin(fed, user):
 # ─────────────────────────────
 
 @app.on_message(filters.command("newfed") & filters.private)
-async def new_fed(_, m: Message):
+async def new_fed(client, m: Message):
     if len(m.command) < 2:
         return await m.reply("⚠️ ᴜꜱᴇ: /newfed ɴᴀᴍᴇ")
 
@@ -67,7 +86,14 @@ async def new_fed(_, m: Message):
         f"🏷 {name}\n🆔 `{fed_id}`"
     )
 
-
+    # 🔥 Controller Log
+    await controller_log(
+        client,
+        f"🆕 **NEW FED CREATED**\n\n"
+        f"🏷 Name: {name}\n"
+        f"🆔 ID: `{fed_id}`\n"
+        f"👤 Owner: `{m.from_user.id}`"
+    )
 # ─────────────────────────────
 # 2️⃣ DELETE FED
 # ─────────────────────────────
@@ -86,6 +112,12 @@ async def delete_fed(_, m: Message):
 
     await m.reply("🗑️ **ꜰᴇᴅᴇʀᴀᴛɪᴏɴ ᴅᴇʟᴇᴛᴇᴅ**")
 
+    await controller_log(
+    client,
+    f"🗑 **FED DELETED**\n\n"
+    f"🆔 ID: `{fed['fed_id']}`\n"
+    f"👤 Deleted By: `{m.from_user.id}`"
+    )
 
 # ─────────────────────────────
 # 3️⃣ RENAME FED
@@ -106,6 +138,13 @@ async def rename_fed(_, m: Message):
 
     await m.reply(f"✏️ {sc('federation renamed')} → {newname}")
 
+    await controller_log(
+    client,
+    f"✏️ **FED RENAMED**\n\n"
+    f"🆔 ID: `{fed['fed_id']}`\n"
+    f"🆕 New Name: {new_name}\n"
+    f"👤 By: `{m.from_user.id}`"
+    )
 
 # ─────────────────────────────
 # 4️⃣ PROMOTE / DEMOTE
@@ -140,6 +179,7 @@ async def demote(_, m: Message):
 
     await m.reply("🔻 ᴀᴅᴍɪɴ ᴅᴇᴍᴏᴛᴇᴅ")
 
+    
 # ─────────────────────────────
 # 5️⃣ JOIN FED
 # ─────────────────────────────
@@ -161,6 +201,13 @@ async def join_fed(client, m: Message):
 
     await m.reply(f"🌍 {sc('group joined federation')}")
 
+   await controller_log(
+    client,
+    f"🌍 **CHAT JOINED FED**\n\n"
+    f"🏷 Fed: {fed['name']}\n"
+    f"💬 Chat ID: `{m.chat.id}`\n"
+    f"👤 By: `{m.from_user.id}`"
+   )
 
 # ─────────────────────────────
 # 6️⃣ LEAVE FED
@@ -179,6 +226,12 @@ async def leave_fed(_, m: Message):
 
     await m.reply("🚪 ɢʀᴏᴜᴘ ʟᴇꜰᴛ ꜰᴇᴅᴇʀᴀᴛɪᴏɴ")
 
+    await controller_log(
+    client,
+    f"🚪 **CHAT LEFT FED**\n\n"
+    f"🏷 Fed: {fed['name']}\n"
+    f"💬 Chat ID: `{m.chat.id}`"
+    )
 
 # ─────────────────────────────
 # 7️⃣ FED BAN
