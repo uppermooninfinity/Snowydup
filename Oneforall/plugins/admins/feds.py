@@ -368,7 +368,7 @@ async def set_rules(_, m: Message):
 
     await m.reply("📜 ꜰᴇᴅ ʀᴜʟᴇꜱ ꜱᴇᴛ")
 
-   await controller_log(
+    await controller_log(
     client,
     f"📜 **FED RULES UPDATED**\n\n"
     f"🏷 Fed: {fed['name']}\n"
