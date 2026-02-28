@@ -9,7 +9,12 @@ from Oneforall import LOGGER, app, userbot
 from Oneforall.core.call import Hotty
 from Oneforall.misc import sudo
 from Oneforall.plugins import ALL_MODULES
-from Oneforall.utils.database import get_banned_users, get_gbanned
+from Oneforall.utils.database import (
+    get_banned_users,
+    get_gbanned,
+    fedsdb,
+    fedbansdb
+)
 
 
 async def init():
@@ -29,14 +34,34 @@ async def init():
         users = await get_gbanned()
         for user_id in users:
             BANNED_USERS.add(user_id)
+
         users = await get_banned_users()
         for user_id in users:
             BANNED_USERS.add(user_id)
     except:
         pass
 
+    # ─────────────────────────────
+    # START BOT
+    # ─────────────────────────────
     await app.start()
 
+    # ─────────────────────────────
+    # CREATE FEDERATION INDEXES
+    # ─────────────────────────────
+    try:
+        await fedsdb.create_index("fed_id", unique=True)
+        await fedbansdb.create_index(
+            [("fed_id", 1), ("user_id", 1)],
+            unique=True
+        )
+        LOGGER("Oneforall").info("Federation indexes ready.")
+    except Exception as e:
+        LOGGER("Oneforall").warning(f"Federation index setup skipped: {e}")
+
+    # ─────────────────────────────
+    # LOAD PLUGINS
+    # ─────────────────────────────
     for module in ALL_MODULES:
         try:
             module_name = module.lstrip('.')
@@ -62,12 +87,14 @@ async def init():
     await Hotty.decorators()
 
     LOGGER("Oneforall").info(
-        "ᴅʀᴏᴘ ʏᴏᴜʀ ɢɪʀʟꜰʀɪᴇɴᴅ'ꜱ ɴᴜᴍʙᴇʀ ᴀᴛ ᴊᴏɪɴ https://t.me/PiratesMainchat ꜰᴏʀ ᴀɴʏ ɪꜱꜱᴜᴇꜱ"
+        "Federation System Loaded Successfully."
     )
 
     await idle()
+
     await app.stop()
     await userbot.stop()
+
     LOGGER("Oneforall").info("Stopping One for all Bot...")
 
 
