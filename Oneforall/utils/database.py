@@ -5,6 +5,7 @@ from Oneforall import userbot
 from Oneforall.core.mongo import mongodb
 
 authdb = mongodb.adminauth
+antichanneldb = mongodb.antichannel
 authuserdb = mongodb.authuser
 autoenddb = mongodb.autoend
 assdb = mongodb.assistants
@@ -426,6 +427,18 @@ async def set_lang(chat_id: int, lang: str):
     await langdb.update_one({"chat_id": chat_id}, {"$set": {"lang": lang}}, upsert=True)
 
 
+async def get_antichannel(chat_id: int):
+    data = await antichannel_collection.find_one({"chat_id": chat_id})
+    return data
+
+
+async def set_antichannel(chat_id: int, value: bool):
+    await antichannel_collection.update_one(
+        {"chat_id": chat_id},
+        {"$set": {"enabled": value}},
+        upsert=True
+    )
+    
 async def is_music_playing(chat_id: int) -> bool:
     mode = pause.get(chat_id)
     if not mode:
@@ -1137,6 +1150,7 @@ async def add_served_chat_clone(chat_id: int):
 
 async def delete_served_chat_clone(chat_id: int):
     await chatsdbc.delete_one({"chat_id": chat_id})
+
 
 
 
