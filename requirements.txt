@@ -1,5 +1,5 @@
 #jay shree krishna ❤️
-telethon==1.33.1
+telethon==1.42.0
 aiofiles
 apscheduler
 aiohttp==3.9.3
