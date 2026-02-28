@@ -26,9 +26,9 @@ async def must_join_channel(app: Client, msg: Message):
                 await msg.reply_photo(
                     photo="https://graph.org/file/b1cfad9f2f765e317efc0-b05c093f37918d1655.jpg",
                     caption=(
-                        "❖ <b><u>ᴀᴄᴄᴏʀᴅɪɴɢ ᴛᴏ ᴍʏ ᴅᴀᴛᴀʙᴀsᴇ ʏᴏᴜ ʜᴀᴠᴇɴ'ᴛ Jᴏɪɴᴇᴅ </u></b>"
+                        "<blockquote>❖ <b><u>ᴀᴄᴄᴏʀᴅɪɴɢ ᴛᴏ ᴍʏ ᴅᴀᴛᴀʙᴀsᴇ ʏᴏᴜ ʜᴀᴠᴇɴ'ᴛ Jᴏɪɴᴇᴅ </u></b>"
                         "<b><a href='https://t.me/dark_musictm'>ᴏᴜʀ ᴄʜᴀɴɴᴇʟ</a></b> <b>yet.</b>\n"
-                        "➥ <b>ғᴏʀ ᴜsɪɴɢ ᴍᴇ, ᴘʟᴇᴀsᴇ ɪᴏɪɴ</b> "
+                        "➥ <b>ғᴏʀ ᴜsɪɴɢ ᴍᴇ, ᴘʟᴇᴀsᴇ Jᴏɪɴ</b> "
                         "<b><a href='https://t.me/snowy_hometown'>ᴏᴜʀ sᴜᴘᴘᴏʀᴛ ɢʀᴏᴜᴘ ᴀɴᴅ ᴛʀʏ ᴍᴇ ᴀɢᴀɪɴ</a></b>"
                     ),
                     reply_markup=InlineKeyboardMarkup(
@@ -39,7 +39,7 @@ async def must_join_channel(app: Client, msg: Message):
                                     url="https://t.me/snowy_hometown"
                                 ),
                                 InlineKeyboardButton(
-                                    "💬˹ɪɴꜰɪɴɪᴛʏ ✘ ɴᴇᴛᴡᴏʀᴋ˼ 🎧",
+                                    "💬˹ɪɴꜰɪɴɪᴛʏ ✘ ɴᴇᴛᴡᴏʀᴋ˼",
                                     url=link
                                 )
                             ]
