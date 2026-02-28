@@ -1,260 +1,363 @@
 import uuid
 import time
-from motor.motor_asyncio import AsyncIOMotorClient
-from pyrogram import Client, filters
+from pyrogram import filters
 from pyrogram.types import Message
 from pyrogram.errors import RPCError
-from config import MONGO_URL, OWNER_ID
-from yourbot import app
-
-mongo = AsyncIOMotorClient(MONGO_URL)
-db = mongo.federation
-
-feds_col = db.feds
-users_col = db.fed_users
-bans_col = db.fed_bans
+from Oneforall import app
+from Oneforall.utils.database import fedsdb, fedbansdb
+from config import OWNER_ID
 
 
-# =====================================================
-# Helper Functions
-# =====================================================
+# ─────────────────────────────
+# Small Caps
+# ─────────────────────────────
 
-async def get_fed(chat_id: int):
-    return await feds_col.find_one({"chats": chat_id})
+SMALL = str.maketrans(
+    "abcdefghijklmnopqrstuvwxyz",
+    "ᴀʙᴄᴅᴇꜰɢʜɪᴊᴋʟᴍɴᴏᴘǫʀꜱᴛᴜᴠᴡxʏᴢ"
+)
 
-
-async def is_fed_admin(fed_id: str, user_id: int):
-    fed = await feds_col.find_one({"fed_id": fed_id})
-    if not fed:
-        return False
-    return user_id == fed["owner"] or user_id in fed.get("admins", [])
+def sc(t): return t.translate(SMALL)
 
 
-# =====================================================
-# CREATE FEDERATION (PRIVATE)
-# =====================================================
+# ─────────────────────────────
+# Helpers
+# ─────────────────────────────
+
+async def get_fed_by_chat(chat_id):
+    return await fedsdb.find_one({"chats": chat_id})
+
+async def get_fed_by_id(fed_id):
+    return await fedsdb.find_one({"fed_id": fed_id})
+
+async def is_owner(fed, user):
+    return fed["owner"] == user
+
+async def is_admin(fed, user):
+    return user == fed["owner"] or user in fed.get("admins", [])
+
+
+# ─────────────────────────────
+# 1️⃣ NEW FED
+# ─────────────────────────────
 
 @app.on_message(filters.command("newfed") & filters.private)
-async def new_fed(_, message: Message):
-    if len(message.command) < 2:
-        return await message.reply_text("Usage: /newfed Federation Name")
+async def new_fed(_, m: Message):
+    if len(m.command) < 2:
+        return await m.reply("⚠️ ᴜꜱᴇ: /newfed ɴᴀᴍᴇ")
 
-    fed_name = message.text.split(None, 1)[1]
-    fed_id = str(uuid.uuid4())
+    fed_id = str(uuid.uuid4())[:8]
+    name = m.text.split(None, 1)[1]
 
-    await feds_col.insert_one({
+    await fedsdb.insert_one({
         "fed_id": fed_id,
-        "name": fed_name,
-        "owner": message.from_user.id,
+        "name": name,
+        "owner": m.from_user.id,
         "admins": [],
         "chats": [],
+        "rules": "",
+        "log_channel": None,
+        "subscribers": [],
+        "notifications": True,
         "created": int(time.time())
     })
 
-    await message.reply_text(
-        f"**Federation Created**\n\n"
-        f"Name: {fed_name}\n"
-        f"ID: `{fed_id}`\n\n"
-        f"Use in group:\n`/joinfed {fed_id}`"
+    await m.reply(
+        f"✨ **{sc('federation created')}**\n\n"
+        f"🏷 {name}\n🆔 `{fed_id}`"
     )
 
 
-# =====================================================
-# JOIN FEDERATION
-# =====================================================
+# ─────────────────────────────
+# 2️⃣ DELETE FED
+# ─────────────────────────────
 
-@app.on_message(filters.command("joinfed") & filters.group)
-async def join_fed(client: Client, message: Message):
-    if len(message.command) < 2:
-        return await message.reply_text("Provide federation ID")
-
-    fed_id = message.command[1]
-    fed = await feds_col.find_one({"fed_id": fed_id})
+@app.on_message(filters.command("delfed") & filters.private)
+async def delete_fed(_, m: Message):
+    fed = await get_fed_by_id(m.command[1])
     if not fed:
-        return await message.reply_text("Invalid federation ID")
+        return await m.reply("❌ ɪɴᴠᴀʟɪᴅ ꜰᴇᴅ")
 
-    member = await client.get_chat_member(message.chat.id, message.from_user.id)
-    if member.status != "creator":
-        return await message.reply_text("Only group creator can join federation")
+    if not await is_owner(fed, m.from_user.id):
+        return await m.reply("⛔ ᴏɴʟʏ ᴏᴡɴᴇʀ")
 
-    if message.chat.id in fed["chats"]:
-        return await message.reply_text("Already joined")
+    await fedsdb.delete_one({"fed_id": fed["fed_id"]})
+    await fedbansdb.delete_many({"fed_id": fed["fed_id"]})
 
-    await feds_col.update_one(
-        {"fed_id": fed_id},
-        {"$push": {"chats": message.chat.id}}
-    )
-
-    await message.reply_text(f"Joined federation {fed['name']}")
+    await m.reply("🗑️ **ꜰᴇᴅᴇʀᴀᴛɪᴏɴ ᴅᴇʟᴇᴛᴇᴅ**")
 
 
-# =====================================================
-# LEAVE FEDERATION
-# =====================================================
+# ─────────────────────────────
+# 3️⃣ RENAME FED
+# ─────────────────────────────
 
-@app.on_message(filters.command("leavefed") & filters.group)
-async def leave_fed(client: Client, message: Message):
-    fed = await get_fed(message.chat.id)
+@app.on_message(filters.command("renamefed") & filters.private)
+async def rename_fed(_, m: Message):
+    fed = await get_fed_by_id(m.command[1])
     if not fed:
-        return await message.reply_text("Not in federation")
+        return await m.reply("❌ ɪɴᴠᴀʟɪᴅ")
 
-    member = await client.get_chat_member(message.chat.id, message.from_user.id)
-    if member.status != "creator":
-        return await message.reply_text("Only creator can leave")
+    if not await is_owner(fed, m.from_user.id):
+        return await m.reply("⛔ ᴏɴʟʏ ᴏᴡɴᴇʀ")
 
-    await feds_col.update_one(
-        {"fed_id": fed["fed_id"]},
-        {"$pull": {"chats": message.chat.id}}
-    )
+    newname = m.text.split(None, 2)[2]
+    await fedsdb.update_one({"fed_id": fed["fed_id"]},
+                            {"$set": {"name": newname}})
 
-    await message.reply_text("Left federation")
+    await m.reply(f"✏️ {sc('federation renamed')} → {newname}")
 
 
-# =====================================================
-# FED INFO
-# =====================================================
-
-@app.on_message(filters.command("fedinfo") & filters.group)
-async def fed_info(client: Client, message: Message):
-    fed = await get_fed(message.chat.id)
-    if not fed:
-        return await message.reply_text("This group is not in federation")
-
-    owner = await client.get_users(fed["owner"])
-    total_bans = await bans_col.count_documents({"fed_id": fed["fed_id"]})
-
-    text = (
-        f"**Federation Info**\n\n"
-        f"Name: {fed['name']}\n"
-        f"ID: `{fed['fed_id']}`\n"
-        f"Owner: {owner.mention}\n"
-        f"Admins: `{len(fed['admins'])}`\n"
-        f"Groups: `{len(fed['chats'])}`\n"
-        f"Banned Users: `{total_bans}`"
-    )
-
-    await message.reply_text(text)
-
-
-# =====================================================
-# PROMOTE FED ADMIN
-# =====================================================
+# ─────────────────────────────
+# 4️⃣ PROMOTE / DEMOTE
+# ─────────────────────────────
 
 @app.on_message(filters.command("fpromote") & filters.group)
-async def promote_fed(_, message: Message):
-    fed = await get_fed(message.chat.id)
+async def promote(_, m: Message):
+    fed = await get_fed_by_chat(m.chat.id)
+    if not fed: return await m.reply("❌ ɴᴏ ꜰᴇᴅ")
+
+    if not await is_owner(fed, m.from_user.id):
+        return await m.reply("⛔ ᴏɴʟʏ ᴏᴡɴᴇʀ")
+
+    user = m.reply_to_message.from_user.id
+    await fedsdb.update_one({"fed_id": fed["fed_id"]},
+                            {"$addToSet": {"admins": user}})
+
+    await m.reply("🛡️ ᴀᴅᴍɪɴ ᴘʀᴏᴍᴏᴛᴇᴅ")
+
+
+@app.on_message(filters.command("fdemote") & filters.group)
+async def demote(_, m: Message):
+    fed = await get_fed_by_chat(m.chat.id)
+    if not fed: return
+
+    if not await is_owner(fed, m.from_user.id):
+        return await m.reply("⛔ ᴏɴʟʏ ᴏᴡɴᴇʀ")
+
+    user = m.reply_to_message.from_user.id
+    await fedsdb.update_one({"fed_id": fed["fed_id"]},
+                            {"$pull": {"admins": user}})
+
+    await m.reply("🔻 ᴀᴅᴍɪɴ ᴅᴇᴍᴏᴛᴇᴅ")
+
+# ─────────────────────────────
+# 5️⃣ JOIN FED
+# ─────────────────────────────
+
+@app.on_message(filters.command("joinfed") & filters.group)
+async def join_fed(client, m: Message):
+    fed = await get_fed_by_id(m.command[1])
     if not fed:
-        return await message.reply_text("Not in federation")
+        return await m.reply("❌ ɪɴᴠᴀʟɪᴅ ꜰᴇᴅ ɪᴅ")
 
-    if message.from_user.id != fed["owner"]:
-        return await message.reply_text("Only federation owner")
+    member = await client.get_chat_member(m.chat.id, m.from_user.id)
+    if member.status != "creator":
+        return await m.reply("⛔ ᴏɴʟʏ ɢʀᴏᴜᴘ ᴏᴡɴᴇʀ")
 
-    if not message.reply_to_message:
-        return await message.reply_text("Reply to user")
-
-    user_id = message.reply_to_message.from_user.id
-
-    await feds_col.update_one(
+    await fedsdb.update_one(
         {"fed_id": fed["fed_id"]},
-        {"$addToSet": {"admins": user_id}}
+        {"$addToSet": {"chats": m.chat.id}}
     )
 
-    await message.reply_text("Promoted to Fed Admin")
+    await m.reply(f"🌍 {sc('group joined federation')}")
 
 
-# =====================================================
-# FED BAN
-# =====================================================
+# ─────────────────────────────
+# 6️⃣ LEAVE FED
+# ─────────────────────────────
+
+@app.on_message(filters.command("leavefed") & filters.group)
+async def leave_fed(_, m: Message):
+    fed = await get_fed_by_chat(m.chat.id)
+    if not fed:
+        return await m.reply("❌ ɴᴏ ꜰᴇᴅ")
+
+    await fedsdb.update_one(
+        {"fed_id": fed["fed_id"]},
+        {"$pull": {"chats": m.chat.id}}
+    )
+
+    await m.reply("🚪 ɢʀᴏᴜᴘ ʟᴇꜰᴛ ꜰᴇᴅᴇʀᴀᴛɪᴏɴ")
+
+
+# ─────────────────────────────
+# 7️⃣ FED BAN
+# ─────────────────────────────
 
 @app.on_message(filters.command("fedban") & filters.group)
-async def fedban(client: Client, message: Message):
-    fed = await get_fed(message.chat.id)
+async def fedban(client, m: Message):
+    fed = await get_fed_by_chat(m.chat.id)
     if not fed:
-        return await message.reply_text("Not in federation")
+        return await m.reply("❌ ɴᴏ ꜰᴇᴅ")
 
-    if not await is_fed_admin(fed["fed_id"], message.from_user.id):
-        return await message.reply_text("Only fed admins")
+    if not await is_admin(fed, m.from_user.id):
+        return await m.reply("⛔ ᴏɴʟʏ ꜰᴇᴅ ᴀᴅᴍɪɴꜱ")
 
-    if not message.reply_to_message:
-        return await message.reply_text("Reply to user")
+    if not m.reply_to_message:
+        return await m.reply("⚠️ ʀᴇᴘʟʏ ᴛᴏ ᴜꜱᴇʀ")
 
-    target = message.reply_to_message.from_user
-    reason = " ".join(message.command[1:]) or "No reason"
+    user = m.reply_to_message.from_user
+    reason = " ".join(m.command[1:]) or "ɴᴏ ʀᴇᴀꜱᴏɴ"
 
-    if target.id == OWNER_ID:
-        return await message.reply_text("Cannot ban owner")
-
-    await bans_col.update_one(
-        {"fed_id": fed["fed_id"], "user_id": target.id},
-        {"$set": {
-            "reason": reason,
-            "time": int(time.time())
-        }},
+    await fedbansdb.update_one(
+        {"fed_id": fed["fed_id"], "user_id": user.id},
+        {"$set": {"reason": reason, "time": int(time.time())}},
         upsert=True
     )
 
-    for chat_id in fed["chats"]:
+    for chat in fed["chats"]:
         try:
-            await client.ban_chat_member(chat_id, target.id)
+            await client.ban_chat_member(chat, user.id)
         except RPCError:
             pass
 
-    await message.reply_text(
-        f"FedBan applied\nUser: {target.mention}\nReason: {reason}"
+    await m.reply(
+        f"🚫 {sc('federation ban applied')}\n\n"
+        f"👤 {user.mention}\n📌 {reason}"
     )
 
 
-# =====================================================
-# UNFEDBAN
-# =====================================================
+# ─────────────────────────────
+# 8️⃣ UNFEDBAN
+# ─────────────────────────────
 
 @app.on_message(filters.command("unfedban") & filters.group)
-async def unfedban(client: Client, message: Message):
-    fed = await get_fed(message.chat.id)
+async def unfedban(client, m: Message):
+    fed = await get_fed_by_chat(m.chat.id)
     if not fed:
-        return await message.reply_text("Not in federation")
+        return
 
-    if not await is_fed_admin(fed["fed_id"], message.from_user.id):
-        return await message.reply_text("Only fed admins")
+    if not await is_admin(fed, m.from_user.id):
+        return await m.reply("⛔ ᴏɴʟʏ ꜰᴇᴅ ᴀᴅᴍɪɴꜱ")
 
-    if not message.reply_to_message:
-        return await message.reply_text("Reply to user")
+    user = m.reply_to_message.from_user
 
-    target = message.reply_to_message.from_user
+    await fedbansdb.delete_one(
+        {"fed_id": fed["fed_id"], "user_id": user.id}
+    )
 
-    await bans_col.delete_one({
-        "fed_id": fed["fed_id"],
-        "user_id": target.id
-    })
-
-    for chat_id in fed["chats"]:
+    for chat in fed["chats"]:
         try:
-            await client.unban_chat_member(chat_id, target.id)
+            await client.unban_chat_member(chat, user.id)
         except RPCError:
             pass
 
-    await message.reply_text(f"{target.mention} UnFedBanned")
+    await m.reply("✅ ᴜꜱᴇʀ ᴜɴꜰᴇᴅʙᴀɴɴᴇᴅ")
 
 
-# =====================================================
-# FED BAN LIST
-# =====================================================
+# ─────────────────────────────
+# 9️⃣ FED BROADCAST
+# ─────────────────────────────
 
-@app.on_message(filters.command("fedbans") & filters.group)
-async def fedbans(_, message: Message):
-    fed = await get_fed(message.chat.id)
+@app.on_message(filters.command("fcast") & filters.private)
+async def fed_broadcast(client, m: Message):
+    fed = await get_fed_by_id(m.command[1])
     if not fed:
-        return await message.reply_text("Not in federation")
+        return
 
-    bans = bans_col.find({"fed_id": fed["fed_id"]})
-    text = f"**Fed Ban List - {fed['name']}**\n\n"
+    if not await is_owner(fed, m.from_user.id):
+        return await m.reply("⛔ ᴏɴʟʏ ᴏᴡɴᴇʀ")
+
+    msg = m.text.split(None, 2)[2]
+
+    sent = 0
+    for chat in fed["chats"]:
+        try:
+            await client.send_message(chat, f"📢 **ꜰᴇᴅ ʙʀᴏᴀᴅᴄᴀꜱᴛ**\n\n{msg}")
+            sent += 1
+        except:
+            pass
+
+    await m.reply(f"📤 ᴍᴇꜱꜱᴀɢᴇ ꜱᴇɴᴛ ᴛᴏ {sent} ɢʀᴏᴜᴘꜱ")
+
+
+# ─────────────────────────────
+# 🔟 SET / GET RULES
+# ─────────────────────────────
+
+@app.on_message(filters.command("setfedrules") & filters.private)
+async def set_rules(_, m: Message):
+    fed = await get_fed_by_id(m.command[1])
+    if not fed:
+        return
+
+    if not await is_owner(fed, m.from_user.id):
+        return
+
+    rules = m.text.split(None, 2)[2]
+
+    await fedsdb.update_one(
+        {"fed_id": fed["fed_id"]},
+        {"$set": {"rules": rules}}
+    )
+
+    await m.reply("📜 ꜰᴇᴅ ʀᴜʟᴇꜱ ꜱᴇᴛ")
+
+
+@app.on_message(filters.command("fedrules") & filters.group)
+async def get_rules(_, m: Message):
+    fed = await get_fed_by_chat(m.chat.id)
+    if not fed or not fed.get("rules"):
+        return await m.reply("📭 ɴᴏ ʀᴜʟᴇꜱ ꜱᴇᴛ")
+
+    await m.reply(f"📜 **ꜰᴇᴅ ʀᴜʟᴇꜱ**\n\n{fed['rules']}")
+
+# ─────────────────────────────
+# FED CHAT LIST
+# ─────────────────────────────
+
+@app.on_message(filters.command("fedchats") & filters.private)
+async def fed_chats(_, m: Message):
+    fed = await get_fed_by_id(m.command[1])
+    if not fed:
+        return
+
+    text = "🌐 **ꜰᴇᴅ ᴄʜᴀᴛꜱ**\n\n"
+    for c in fed["chats"]:
+        text += f"• `{c}`\n"
+
+    await m.reply(text)
+
+
+# ─────────────────────────────
+# FED ADMIN LIST
+# ─────────────────────────────
+
+@app.on_message(filters.command("fedadmins") & filters.private)
+async def fed_admins(_, m: Message):
+    fed = await get_fed_by_id(m.command[1])
+    if not fed:
+        return
+
+    text = "🛡️ **ꜰᴇᴅ ᴀᴅᴍɪɴꜱ**\n\n"
+    for a in fed["admins"]:
+        text += f"• `{a}`\n"
+
+    await m.reply(text)
+
+
+# ─────────────────────────────
+# USER FED STAT
+# ─────────────────────────────
+
+@app.on_message(filters.command("fedstat") & filters.private)
+async def fed_stat(_, m: Message):
+    bans = fedbansdb.find({"user_id": m.from_user.id})
 
     count = 0
-    async for ban in bans:
-        text += f"• `{ban['user_id']}` - {ban['reason']}\n"
+    async for _ in bans:
         count += 1
 
-    if count == 0:
-        text += "No banned users"
+    await m.reply(f"📊 {sc('you are banned in')} {count} ꜰᴇᴅꜱ")
 
-    await message.reply_text(text)
+@app.on_message(filters.command("fedownerhelp"))
+async def owner_help(_, m: Message):
+    await m.reply("👑 **ꜰᴇᴅ ᴏᴡɴᴇʀ ᴄᴏᴍᴍᴀɴᴅꜱ**\n/newfed\n/delfed\n/renamefed\n/fcast\n/setfedrules")
+
+@app.on_message(filters.command("fedadminhelp"))
+async def admin_help(_, m: Message):
+    await m.reply("🛡️ **ꜰᴇᴅ ᴀᴅᴍɪɴ ᴄᴏᴍᴍᴀɴᴅꜱ**\n/fedban\n/unfedban")
+
+@app.on_message(filters.command("feduserhelp"))
+async def user_help(_, m: Message):
+    await m.reply("👥 **ꜰᴇᴅ ᴜꜱᴇʀ ᴄᴏᴍᴍᴀɴᴅꜱ**\n/fedrules\n/fedinfo")
