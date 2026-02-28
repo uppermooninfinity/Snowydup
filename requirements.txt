@@ -8,7 +8,7 @@ hachoir
 heroku3
 motor
 openai
-pillow==9.5.0
+pillow==12.1.1
 psutil
 wget
 qrcode
