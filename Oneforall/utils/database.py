@@ -889,6 +889,115 @@ async def add_autoquiz_chat(chat_id: int):
         upsert=True
     )
 
+# federation vala 
+
+
+# ───────── FEDERATION SAFE FUNCTIONS ─────────
+
+# Create Federation
+async def create_federation(data: dict):
+    try:
+        return await fedsdb.insert_one(data)
+    except Exception:
+        return None
+
+
+# Get Federation by ID
+async def get_federation(fed_id: str):
+    return await fedsdb.find_one({"fed_id": fed_id})
+
+
+# Get Federation by Chat
+async def get_fed_by_chat(chat_id: int):
+    return await fedsdb.find_one({"chats": chat_id})
+
+
+# Delete Federation
+async def delete_federation(fed_id: str):
+    await fedsdb.delete_one({"fed_id": fed_id})
+    await fedbansdb.delete_many({"fed_id": fed_id})
+
+
+# Add Chat to Federation
+async def add_chat_to_fed(fed_id: str, chat_id: int):
+    await fedsdb.update_one(
+        {"fed_id": fed_id},
+        {"$addToSet": {"chats": chat_id}}
+    )
+
+
+# Remove Chat from Federation
+async def remove_chat_from_fed(fed_id: str, chat_id: int):
+    await fedsdb.update_one(
+        {"fed_id": fed_id},
+        {"$pull": {"chats": chat_id}}
+    )
+
+
+# Promote Fed Admin
+async def promote_fed_admin(fed_id: str, user_id: int):
+    await fedsdb.update_one(
+        {"fed_id": fed_id},
+        {"$addToSet": {"admins": user_id}}
+    )
+
+
+# Demote Fed Admin
+async def demote_fed_admin(fed_id: str, user_id: int):
+    await fedsdb.update_one(
+        {"fed_id": fed_id},
+        {"$pull": {"admins": user_id}}
+    )
+
+
+# Add FedBan
+async def add_fedban(fed_id: str, user_id: int, reason: str, time: int):
+    await fedbansdb.update_one(
+        {"fed_id": fed_id, "user_id": user_id},
+        {"$set": {"reason": reason, "time": time}},
+        upsert=True
+    )
+
+
+# Remove FedBan
+async def remove_fedban(fed_id: str, user_id: int):
+    await fedbansdb.delete_one(
+        {"fed_id": fed_id, "user_id": user_id}
+    )
+
+
+# Count FedBans
+async def count_fedbans(fed_id: str):
+    return await fedbansdb.count_documents({"fed_id": fed_id})
+
+
+# Get All FedBans for User
+async def get_user_fedbans(user_id: int):
+    return fedbansdb.find({"user_id": user_id})
+
+
+# Set Fed Rules
+async def set_fed_rules(fed_id: str, rules: str):
+    await fedsdb.update_one(
+        {"fed_id": fed_id},
+        {"$set": {"rules": rules}}
+    )
+
+
+# Set Fed Log Channel
+async def set_fed_log(fed_id: str, chat_id: int):
+    await fedsdb.update_one(
+        {"fed_id": fed_id},
+        {"$set": {"log_channel": chat_id}}
+    )
+
+
+# Toggle Notifications
+async def toggle_fed_notifications(fed_id: str, state: bool):
+    await fedsdb.update_one(
+        {"fed_id": fed_id},
+        {"$set": {"notifications": state}}
+    )
 
 async def get_all_autoquiz_chats():
     chats = db.autoquiz_chats.find({})
@@ -1028,6 +1137,7 @@ async def add_served_chat_clone(chat_id: int):
 
 async def delete_served_chat_clone(chat_id: int):
     await chatsdbc.delete_one({"chat_id": chat_id})
+
 
 
 
