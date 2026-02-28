@@ -201,7 +201,7 @@ async def join_fed(client, m: Message):
 
     await m.reply(f"🌍 {sc('group joined federation')}")
 
-   await controller_log(
+    await controller_log(
     client,
     f"🌍 **CHAT JOINED FED**\n\n"
     f"🏷 Fed: {fed['name']}\n"
