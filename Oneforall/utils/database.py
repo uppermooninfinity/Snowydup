@@ -849,7 +849,24 @@ async def suggestion_off(chat_id: int):
     if not user:
         return await suggdb.insert_one({"chat_id": chat_id})
 
+#quiz vala 
 
+async def add_autoquiz_chat(chat_id: int):
+    await db.autoquiz_chats.update_one(
+        {"chat_id": chat_id},
+        {"$set": {"chat_id": chat_id}},
+        upsert=True
+    )
+
+
+async def get_all_autoquiz_chats():
+    chats = db.autoquiz_chats.find({})
+    return [chat["chat_id"] async for chat in chats]
+
+
+async def remove_autoquiz_chat(chat_id: int):
+    await db.autoquiz_chats.delete_one({"chat_id": chat_id})
+    
 # Clean Mode
 async def is_cleanmode_on(chat_id: int) -> bool:
     if chat_id not in cleanmode:
@@ -980,3 +997,4 @@ async def add_served_chat_clone(chat_id: int):
 
 async def delete_served_chat_clone(chat_id: int):
     await chatsdbc.delete_one({"chat_id": chat_id})
+
