@@ -850,7 +850,34 @@ async def suggestion_off(chat_id: int):
         return await suggdb.insert_one({"chat_id": chat_id})
 
 #quiz vala 
+async def set_quiz_settings(chat_id: int, enabled: bool, interval: int):
+    await chats.update_one(
+        {"chat_id": chat_id},
+        {
+            "$set": {
+                "quiz_enabled": enabled,
+                "quiz_interval": interval
+            }
+        },
+        upsert=True
+    )
 
+
+async def get_quiz_settings(chat_id: int):
+    chat = await chats.find_one({"chat_id": chat_id})
+    if not chat:
+        return False, 3600  # default disabled, 1 hour interval
+    
+    return (
+        chat.get("quiz_enabled", False),
+        chat.get("quiz_interval", 3600)
+    )
+
+
+async def get_all_quiz_enabled_chats():
+    chats_cursor = chats.find({"quiz_enabled": True})
+    return [chat["chat_id"] async for chat in chats_cursor]
+    
 async def add_autoquiz_chat(chat_id: int):
     await db.autoquiz_chats.update_one(
         {"chat_id": chat_id},
@@ -997,4 +1024,5 @@ async def add_served_chat_clone(chat_id: int):
 
 async def delete_served_chat_clone(chat_id: int):
     await chatsdbc.delete_one({"chat_id": chat_id})
+
 
