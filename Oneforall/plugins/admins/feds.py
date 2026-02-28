@@ -269,7 +269,15 @@ async def fedban(client, m: Message):
         f"👤 {user.mention}\n📌 {reason}"
     )
 
-
+    await controller_log(
+    client,
+    f"🚫 **USER FEDBANNED**\n\n"
+    f"🏷 Fed: {fed['name']}\n"
+    f"👤 User: `{user.id}`\n"
+    f"📝 Reason: {reason}\n"
+    f"⚡ By: `{m.from_user.id}`"
+    )
+    
 # ─────────────────────────────
 # 8️⃣ UNFEDBAN
 # ─────────────────────────────
@@ -297,6 +305,14 @@ async def unfedban(client, m: Message):
 
     await m.reply("✅ ᴜꜱᴇʀ ᴜɴꜰᴇᴅʙᴀɴɴᴇᴅ")
 
+    await controller_log(
+    client,
+    f"✅ **USER UNFEDBANNED**\n\n"
+    f"🏷 Fed: {fed['name']}\n"
+    f"👤 User: `{user.id}`\n"
+    f"⚡ By: `{m.from_user.id}`"
+    )
+    
 
 # ─────────────────────────────
 # 9️⃣ FED BROADCAST
@@ -323,7 +339,13 @@ async def fed_broadcast(client, m: Message):
 
     await m.reply(f"📤 ᴍᴇꜱꜱᴀɢᴇ ꜱᴇɴᴛ ᴛᴏ {sent} ɢʀᴏᴜᴘꜱ")
 
-
+    await controller_log(
+    client,
+    f"📢 **FED BROADCAST SENT**\n\n"
+    f"🏷 Fed: {fed['name']}\n"
+    f"👤 By: `{m.from_user.id}`"
+    )
+    
 # ─────────────────────────────
 # 🔟 SET / GET RULES
 # ─────────────────────────────
@@ -346,6 +368,12 @@ async def set_rules(_, m: Message):
 
     await m.reply("📜 ꜰᴇᴅ ʀᴜʟᴇꜱ ꜱᴇᴛ")
 
+   await controller_log(
+    client,
+    f"📜 **FED RULES UPDATED**\n\n"
+    f"🏷 Fed: {fed['name']}\n"
+    f"👤 By: `{m.from_user.id}`"
+   )
 
 @app.on_message(filters.command("fedrules") & filters.group)
 async def get_rules(_, m: Message):
