@@ -14,6 +14,8 @@ chatsdb = mongodb.chats
 channeldb = mongodb.cplaymode
 countdb = mongodb.upcount
 gbansdb = mongodb.gban
+fedsdb = mongodb.federations
+fedbansdb = mongodb.federation_bans
 langdb = mongodb.language
 onoffdb = mongodb.onoffper
 playmodedb = mongodb.playmode
@@ -1024,5 +1026,6 @@ async def add_served_chat_clone(chat_id: int):
 
 async def delete_served_chat_clone(chat_id: int):
     await chatsdbc.delete_one({"chat_id": chat_id})
+
 
 
