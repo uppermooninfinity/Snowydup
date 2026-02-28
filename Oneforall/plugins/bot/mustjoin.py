@@ -1,7 +1,7 @@
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message
 from pyrogram.errors import ChatAdminRequired, UserNotParticipant, ChatWriteForbidden
-from pyrogram.enums import ParseMode  # ✅ Use Enum instead of raw string
+from pyrogram.enums import ParseMode
 from Oneforall import app
 
 MUST_JOIN = "dark_musictm"  # Username or chat ID
@@ -26,20 +26,28 @@ async def must_join_channel(app: Client, msg: Message):
                 await msg.reply_photo(
                     photo="https://graph.org/file/b1cfad9f2f765e317efc0-b05c093f37918d1655.jpg",
                     caption=(
-                        "❖ <b>According to my database</b>, <b>you haven’t joined</b> "
-"<b><a href='https://t.me/dark_musictm'>our support channel</a></b> <b>yet.</b>\n"
-"➥ <b>If you want to use me, please join</b> "
-"<b><a href='https://t.me/snowy_hometown'>our support group</a></b> <b>and start me again.</b>"
-                        
+                        "❖ <b><u>ᴀᴄᴄᴏʀᴅɪɴɢ ᴛᴏ ᴍʏ ᴅᴀᴛᴀʙᴀsᴇ ʏᴏᴜ ʜᴀᴠᴇɴ'ᴛ Jᴏɪɴᴇᴅ </u></b>"
+                        "<b><a href='https://t.me/dark_musictm'>ᴏᴜʀ ᴄʜᴀɴɴᴇʟ</a></b> <b>yet.</b>\n"
+                        "➥ <b>ғᴏʀ ᴜsɪɴɢ ᴍᴇ, ᴘʟᴇᴀsᴇ ɪᴏɪɴ</b> "
+                        "<b><a href='https://t.me/snowy_hometown'>ᴏᴜʀ sᴜᴘᴘᴏʀᴛ ɢʀᴏᴜᴘ ᴀɴᴅ ᴛʀʏ ᴍᴇ ᴀɢᴀɪɴ</a></b>"
                     ),
                     reply_markup=InlineKeyboardMarkup(
                         [
-                            [InlineKeyboardButton("📢 Join Updates", url="https://t.me/iamvillain77")],
-                            [InlineKeyboardButton("💬 Join Support", url=link)]
+                            [
+                                InlineKeyboardButton(
+                                    "📢˹Jᴏɪɴ sᴜᴘᴘᴏʀᴛ˼",
+                                    url="https://t.me/snowy_hometown"
+                                ),
+                                InlineKeyboardButton(
+                                    "💬˹ɪɴꜰɪɴɪᴛʏ ✘ ɴᴇᴛᴡᴏʀᴋ˼ 🎧",
+                                    url=link
+                                )
+                            ]
                         ]
                     ),
-                    parse_mode=ParseMode.HTML  # ✅ Correct way in Pyrogram v2+
+                    parse_mode=ParseMode.HTML
                 )
+
                 await msg.stop_propagation()
 
             except ChatWriteForbidden:
@@ -47,4 +55,3 @@ async def must_join_channel(app: Client, msg: Message):
 
     except ChatAdminRequired:
         print(f"❖ Promote me as an admin in the MUST_JOIN chat: {MUST_JOIN}")
-        
