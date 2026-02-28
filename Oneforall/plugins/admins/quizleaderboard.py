@@ -97,9 +97,10 @@ async def send_leaderboard(chat_id: int, manual=False):
     except:
         msg = await app.send_photo(
             chat_id,
-            TROPHY_IMAGE,
+            photo=TROPHY_IMAGE,
             caption=text,
-            parse_mode=ParseMode.MARKDOWN
+            parse_mode=ParseMode.MARKDOWN,
+            has_spoiler=True
         )
 
     if not manual:
