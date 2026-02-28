@@ -1,44 +1,108 @@
+import asyncio
 import random
-import requests
+import html
+import aiohttp
+
 from pyrogram import filters
 from pyrogram.enums import PollType
+from pyrogram.types import Message
+
 from Oneforall import app
+from Oneforall.utils.database import db
 
-print("🧠 LOADING QUIZ...")
 
-@app.on_message(filters.command("quiz"))
-async def quiz(client, message):
-    print("🧠 /quiz command received!")  # Debug
-    
-    await message.reply("🧠 **Quiz loading...**")
-    
-    try:
-        # Simple API call
-        url = "https://opentdb.com/api.php?amount=1&category=9&type=multiple"
-        data = requests.get(url).json()["results"][0]
-        
-        question = data["question"]
-        correct = data["correct_answer"]
-        incorrect = data["incorrect_answers"]
-        answers = incorrect + [correct]
-        random.shuffle(answers)
-        correct_id = answers.index(correct)
-        
-        await app.send_poll(
-            chat_id=message.chat.id,
-            question=f"🧠 **QUIZ!**
+# ================= CONFIG ================= #
 
-{question}",
-            options=answers,
-            is_anonymous=False,
-            type=PollType.QUIZ,
-            correct_option_id=correct_id
-        )
-        print("✅ Quiz sent successfully!")
-        await message.delete()
-        
-    except Exception as e:
-        print(f"❌ Quiz error: {e}")
-        await message.edit(f"❌ Error: {e}")
+QUIZ_INTERVAL = 3600  # 1 hour (change if needed)
 
-print("✅ QUIZ LOADED - /quiz should work NOW!")
+
+# ================= DATABASE ================= #
+
+async def add_chat(chat_id: int):
+    await db.autoquiz_chats.update_one(
+        {"chat_id": chat_id},
+        {"$set": {"chat_id": chat_id}},
+        upsert=True
+    )
+
+
+async def get_all_chats():
+    chats = db.autoquiz_chats.find({})
+    return [chat["chat_id"] async for chat in chats]
+
+
+# ================= REGISTER GROUP ================= #
+
+@app.on_message(filters.group & filters.incoming, group=10)
+async def register_chat(_, message: Message):
+    await add_chat(message.chat.id)
+
+
+# ================= QUIZ FETCHER ================= #
+
+async def fetch_quiz():
+    url = "https://opentdb.com/api.php?amount=1&type=multiple"
+
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as resp:
+            data = await resp.json()
+
+    if not data.get("results"):
+        return None
+
+    result = data["results"][0]
+
+    question = html.unescape(result["question"])
+    correct = html.unescape(result["correct_answer"])
+    incorrect = [html.unescape(i) for i in result["incorrect_answers"]]
+
+    answers = incorrect + [correct]
+    random.shuffle(answers)
+    correct_id = answers.index(correct)
+
+    return question, answers, correct_id
+
+
+# ================= AUTO LOOP ================= #
+
+async def auto_quiz_loop():
+
+    await app.wait_until_ready()
+
+    while True:
+        try:
+            chats = await get_all_chats()
+
+            if not chats:
+                await asyncio.sleep(QUIZ_INTERVAL)
+                continue
+
+            for chat_id in chats:
+
+                quiz = await fetch_quiz()
+                if not quiz:
+                    continue
+
+                question, answers, correct_id = quiz
+
+                try:
+                    await app.send_poll(
+                        chat_id=chat_id,
+                        question=f"🧠 AUTO QUIZ!\n\n{question}",
+                        options=answers,
+                        type=PollType.QUIZ,
+                        correct_option_id=correct_id,
+                        is_anonymous=False
+                    )
+                except Exception as e:
+                    print(f"Quiz send failed in {chat_id}: {e}")
+
+        except Exception as e:
+            print("Auto Quiz Error:", e)
+
+        await asyncio.sleep(QUIZ_INTERVAL)
+
+
+# ================= START BACKGROUND TASK ================= #
+
+app.loop.create_task(auto_quiz_loop())
