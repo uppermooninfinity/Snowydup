@@ -5,6 +5,8 @@ from Oneforall import userbot
 from Oneforall.core.mongo import mongodb
 
 authdb = mongodb.adminauth
+get_antichannel = mongodb.get_antichannel
+get_admins = mongodb.getadmins
 antichanneldb = mongodb.antichannel
 authuserdb = mongodb.authuser
 autoenddb = mongodb.autoend
@@ -1150,6 +1152,7 @@ async def add_served_chat_clone(chat_id: int):
 
 async def delete_served_chat_clone(chat_id: int):
     await chatsdbc.delete_one({"chat_id": chat_id})
+
 
 
 
