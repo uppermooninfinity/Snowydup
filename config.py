@@ -31,8 +31,8 @@ SUPERBAN_LOG_GC = int(os.getenv("SUPERBAN_LOG_GC", -1003748760283))
 LOGGER_ID = int(os.getenv("LOGGER_ID", -1003748760283))
 FED_LOG_CHANNEL = int(os.getenv("FED_LOG_CHANNEL", --1003700186680))
 # Get this value from @BRANDRD_ROBOT on Telegram by /id
-OWNER_ID = int(os.getenv("OWNER_ID", "7651303468"))
-
+OWNER_ID = int(os.getenv("OWNER_ID", "8285730532"))
+SUPERBAN_ADMINS = int(os.getenv("SUPERBAN_ADMUNS", "7651303468")
 ## Fill these variables if you're deploying on heroku.
 # Your heroku app name
 HEROKU_APP_NAME = os.getenv("HEROKU_APP_NAME")
@@ -49,7 +49,7 @@ GIT_TOKEN = os.getenv(
 
 SUPPORT_CHANNEL = os.getenv("SUPPORT_CHANNEL", "https://t.me/dark_musictm")
 SUPPORT_CHAT = os.getenv("SUPPORT_CHAT", "https://t.me/snowy_hometown")
-
+SUPERBAN_CHANNEL = os.getenv("SUPERBAN_CHANNEL", "https://t.me/astral_superbans")
 # Set this to True if you want the assistant to automatically leave chats after an interval
 AUTO_LEAVING_ASSISTANT = bool(os.getenv("AUTO_LEAVING_ASSISTANT", False))
 
@@ -98,6 +98,7 @@ votemode = {}
 autoclean = []
 confirmer = {}
 
+SUPERBAN_VIDEO = "https://litter.catbox.moe/90xmzlql8un278km.mp4"
 PING_IMG_URL = os.getenv("PING_IMG_URL", "https://files.catbox.moe/nndfm5.jpg")
 PLAYLIST_IMG_URL = "https://files.catbox.moe/nndfm5.jpg"
 STATS_IMG_URL = "https://files.catbox.moe/bn1lww.jpg"
