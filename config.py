@@ -27,7 +27,8 @@ PRIVATE_BOT_MODE = os.getenv("PRIVATE_BOT_MODE", None)
 DURATION_LIMIT_MIN = int(os.getenv("DURATION_LIMIT", 100000))
 
 # Chat id of a group for logging bot's activities
-LOGGER_ID = int(os.getenv("LOGGER_ID", -1003228624224))
+SUPERBAN_LOG_GC = int(os.getenv("SUPERBAN_LOG_GC", -1003748760283))
+LOGGER_ID = int(os.getenv("LOGGER_ID", -1003748760283))
 FED_LOG_CHANNEL = int(os.getenv("FED_LOG_CHANNEL", --1003700186680))
 # Get this value from @BRANDRD_ROBOT on Telegram by /id
 OWNER_ID = int(os.getenv("OWNER_ID", "7651303468"))
