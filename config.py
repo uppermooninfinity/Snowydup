@@ -108,7 +108,7 @@ YOUTUBE_IMG_URL = "https://files.catbox.moe/jg7sz6.jpg"
 SPOTIFY_ARTIST_IMG_URL = "https://files.catbox.moe/utvwvt.png"
 SPOTIFY_ALBUM_IMG_URL = "https://files.catbox.moe/utvwvt.png"
 SPOTIFY_PLAYLIST_IMG_URL = "https://files.catbox.moe/utvwvt.png"
-
+THUMB_VID_URL = "https://files.catbox.moe/u67qpv.mp4"
 START_IMG_URL = os.getenv("START_IMG_URL")
 
 if START_IMG_URL:
