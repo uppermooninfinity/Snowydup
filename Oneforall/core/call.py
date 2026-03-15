@@ -199,7 +199,7 @@ class Call(PyTgCalls):
             MediaStream(
                 out,
                 audio_parameters=AudioQuality.HIGH,
-                video_parameters=VideoQuality.SD_110p,
+                video_parameters=VideoQuality.SD_360p,
                 ffmpeg_parameters="-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -loglevel quiet"
             )
             if playing[0]["streamtype"] == "video"
@@ -251,7 +251,7 @@ class Call(PyTgCalls):
             stream = MediaStream(
                 link,
                 audio_parameters=AudioQuality.HIGH,
-                video_parameters=VideoQuality.SD_110p,
+                video_parameters=VideoQuality.SD_360p,
                 ffmpeg_parameters="-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -loglevel quiet"
             )
         else:
@@ -272,7 +272,7 @@ class Call(PyTgCalls):
             MediaStream(
                 file_path,
                 audio_parameters=AudioQuality.HIGH,
-                video_parameters=VideoQuality.SD_110p,
+                video_parameters=VideoQuality.SD_360p,
                 ffmpeg_parameters="-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -loglevel quiet"
             )
             if mode == "video"
@@ -309,7 +309,7 @@ class Call(PyTgCalls):
             stream = MediaStream(
                 link,
                 audio_parameters=AudioQuality.HIGH,
-                video_parameters=VideoQuality.SD_110p,
+                video_parameters=VideoQuality.SD_360p,
                 ffmpeg_parameters="-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -loglevel quiet"
             )
         else:
@@ -317,7 +317,7 @@ class Call(PyTgCalls):
                 MediaStream(
                     link,
                     audio_parameters=AudioQuality.HIGH,
-                    video_parameters=VideoQuality.SD_110p,
+                    video_parameters=VideoQuality.SD_360p,
                     ffmpeg_parameters="-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -loglevel quiet"
                 )
                 if video
@@ -399,7 +399,7 @@ class Call(PyTgCalls):
                     stream = MediaStream(
                         link,
                         audio_parameters=AudioQuality.HIGH,
-                        video_parameters=VideoQuality.SD_110p,
+                        video_parameters=VideoQuality.SD_360p,
                         ffmpeg_parameters="-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -loglevel quiet"
                     )
                 else:
@@ -448,7 +448,7 @@ class Call(PyTgCalls):
                     stream = MediaStream(
                         file_path,
                         audio_parameters=AudioQuality.HIGH,
-                        video_parameters=VideoQuality.SD_110p,
+                        video_parameters=VideoQuality.SD_360p,
                         ffmpeg_parameters="-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -loglevel quiet"
                     )
                 else:
@@ -486,7 +486,7 @@ class Call(PyTgCalls):
                     MediaStream(
                         videoid,
                         audio_parameters=AudioQuality.HIGH,
-                        video_parameters=VideoQuality.SD_110p,
+                        video_parameters=VideoQuality.SD_360p,
                         ffmpeg_parameters="-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -loglevel quiet"
                     )
                     if str(streamtype) == "video"
@@ -518,7 +518,7 @@ class Call(PyTgCalls):
                     stream = MediaStream(
                         queued,
                         audio_parameters=AudioQuality.HIGH,
-                        video_parameters=VideoQuality.SD_110p,
+                        video_parameters=VideoQuality.SD_360p,
                         ffmpeg_parameters="-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -loglevel quiet"
                     )
                 else:
