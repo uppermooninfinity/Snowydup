@@ -4,7 +4,7 @@ from typing import Union
 
 from pyrogram.types import InlineKeyboardMarkup
 
-import config
+import config import THUMB_VID_URL, YOUTUBE_IMG_URL
 from Oneforall import Carbon, YouTube, app
 from Oneforall.core.call import Hotty
 from Oneforall.misc import db
@@ -103,9 +103,9 @@ async def stream(
 
                 status = True if video else None
                 try:
-                    file_path, direct = await YouTube.download(
-                        vidid, mystic, video=status, videoid=True
-                    )
+                    stream_link = await YouTube.stream(vidid)
+                    file_path = stream_link
+                    direct = True
                 except:
                     await mystic.edit_text(_["play_3"])
                     return
@@ -114,8 +114,8 @@ async def stream(
                     chat_id,
                     original_chat_id,
                     file_path,
-                    video=status,
-                    image=None,  # ❌ No YouTube thumbnail
+                    video=config.THUMB_VID_URL,
+                    image=config.YOUTUBE_IMG_URL,  # ❌ No YouTube thumbnail
                 )
 
                 await put_queue(
@@ -134,9 +134,9 @@ async def stream(
                 img = await get_thumb(title, user_name)
                 button = stream_markup(_, vidid, chat_id)
 
-                run = await app.send_photo(
+                run = await app.send_video(
                     original_chat_id,
-                    photo=img,
+                    video=config.THUMB_VID_URL,
                     caption=_["stream_1"].format(
                         f"https://t.me/{app.username}?start=info_{vidid}",
                         title[:18],
@@ -174,9 +174,9 @@ async def stream(
         status = True if video else None
 
         try:
-            file_path, direct = await YouTube.download(
-                vidid, mystic, videoid=True, video=status
-            )
+            stream_link = await YouTube.stream(vidid)
+            file_path = stream_link
+            direct = True
         except:
             return await mystic.edit_text(_["play_3"])
 
@@ -197,9 +197,9 @@ async def stream(
             position = len(db.get(chat_id)) - 1
             button = aq_markup(_, chat_id)
 
-            await app.send_photo(
+            await app.send_video(
                 chat_id=original_chat_id,
-                photo=img,
+                video=config.THUMB_VID_URL,
                 caption=_["queue_4"].format(
                     position, title[:18], duration_min, user_name
                 ),
@@ -214,8 +214,8 @@ async def stream(
                 chat_id,
                 original_chat_id,
                 file_path,
-                video=status,
-                image=None,  # ❌ removed YouTube thumb
+                video=config.THUMB_VID_URL,
+                image=config.YOUTUBE_IMG_URL,  # CONFIG SE LEGA AB THUMBNAIL
             )
 
             await put_queue(
@@ -234,9 +234,9 @@ async def stream(
             img = await get_thumb(title, user_name)
             button = stream_markup(_, vidid, chat_id)
 
-            run = await app.send_photo(
+            run = await app.send_video(
                 original_chat_id,
-                photo=img,
+                video=config.THUMB_VID_URL,
                 caption=_["stream_1"].format(
                     f"https://t.me/{app.username}?start=info_{vidid}",
                     title[:18],
@@ -268,8 +268,8 @@ async def stream(
             chat_id,
             original_chat_id,
             file_path,
-            video=status,
-            image=None,
+            video=config.THUMB_VID_URL,
+            image=config.YOUTUBE_IMG_URL,
         )
 
         await put_queue(
@@ -288,9 +288,9 @@ async def stream(
         img = await get_thumb(title, user_name)
         button = stream_markup2(_, chat_id)
 
-        run = await app.send_photo(
+        run = await app.send_video(
             original_chat_id,
-            photo=img,
+            video=config.THUMB_VID_URL,
             caption=_["stream_1"].format(
                 f"https://t.me/{app.username}?start=info_{vidid}",
                 title[:23],
