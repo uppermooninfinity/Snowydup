@@ -200,13 +200,13 @@ class Call(PyTgCalls):
                 out,
                 audio_parameters=AudioQuality.HIGH,
                 video_parameters=VideoQuality.SD_480p,
-                ffmpeg_parameters=f"-ss {played} -to {duration}",
+                ffmpeg_parameters="-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -loglevel quiet"
             )
             if playing[0]["streamtype"] == "video"
             else MediaStream(
                 out,
                 audio_parameters=AudioQuality.HIGH,
-                ffmpeg_parameters=f"-ss {played} -to {duration}",
+                ffmpeg_parameters="-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -loglevel quiet",
                 video_flags=MediaStream.IGNORE,
             )
         )
@@ -252,12 +252,14 @@ class Call(PyTgCalls):
                 link,
                 audio_parameters=AudioQuality.HIGH,
                 video_parameters=VideoQuality.SD_480p,
+                ffmpeg_parameters="-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -loglevel quiet"
             )
         else:
             stream = MediaStream(
                 link,
                 audio_parameters=AudioQuality.HIGH,
                 video_flags=MediaStream.IGNORE,
+                ffmpeg_parameters="-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -loglevel quiet"
             )
         await assistant.change_stream(
             chat_id,
@@ -271,13 +273,13 @@ class Call(PyTgCalls):
                 file_path,
                 audio_parameters=AudioQuality.HIGH,
                 video_parameters=VideoQuality.SD_480p,
-                ffmpeg_parameters=f"-ss {to_seek} -to {duration}",
+                ffmpeg_parameters="-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -loglevel quiet"
             )
             if mode == "video"
             else MediaStream(
                 file_path,
                 audio_parameters=AudioQuality.HIGH,
-                ffmpeg_parameters=f"-ss {to_seek} -to {duration}",
+                ffmpeg_parameters="-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -loglevel quiet",
                 video_flags=MediaStream.IGNORE,
             )
         )
@@ -308,6 +310,7 @@ class Call(PyTgCalls):
                 link,
                 audio_parameters=AudioQuality.HIGH,
                 video_parameters=VideoQuality.SD_480p,
+                ffmpeg_parameters="-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -loglevel quiet"
             )
         else:
             stream = (
@@ -315,12 +318,14 @@ class Call(PyTgCalls):
                     link,
                     audio_parameters=AudioQuality.HIGH,
                     video_parameters=VideoQuality.SD_480p,
+                    ffmpeg_parameters="-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -loglevel quiet"
                 )
                 if video
                 else MediaStream(
                     link,
                     audio_parameters=AudioQuality.HIGH,
                     video_flags=MediaStream.IGNORE,
+                    ffmpeg_parameters="-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -loglevel quiet"
                 )
             )
         try:
@@ -395,12 +400,14 @@ class Call(PyTgCalls):
                         link,
                         audio_parameters=AudioQuality.HIGH,
                         video_parameters=VideoQuality.SD_480p,
+                        ffmpeg_parameters="-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -loglevel quiet"
                     )
                 else:
                     stream = MediaStream(
                         link,
                         audio_parameters=AudioQuality.HIGH,
                         video_flags=MediaStream.IGNORE,
+                        ffmpeg_parameters="-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -loglevel quiet"
                     )
                 try:
                     await client.change_stream(chat_id, stream)
@@ -442,12 +449,14 @@ class Call(PyTgCalls):
                         file_path,
                         audio_parameters=AudioQuality.HIGH,
                         video_parameters=VideoQuality.SD_480p,
+                        ffmpeg_parameters="-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -loglevel quiet"
                     )
                 else:
                     stream = MediaStream(
                         file_path,
                         audio_parameters=AudioQuality.HIGH,
                         video_flags=MediaStream.IGNORE,
+                        ffmpeg_parameters="-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -loglevel quiet"
                     )
                 try:
                     await client.change_stream(chat_id, stream)
@@ -478,12 +487,14 @@ class Call(PyTgCalls):
                         videoid,
                         audio_parameters=AudioQuality.HIGH,
                         video_parameters=VideoQuality.SD_480p,
+                        ffmpeg_parameters="-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -loglevel quiet"
                     )
                     if str(streamtype) == "video"
                     else MediaStream(
                         videoid,
                         audio_parameters=AudioQuality.HIGH,
                         video_flags=MediaStream.IGNORE,
+                        ffmpeg_parameters="-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -loglevel quiet"
                     )
                 )
                 try:
@@ -508,12 +519,14 @@ class Call(PyTgCalls):
                         queued,
                         audio_parameters=AudioQuality.HIGH,
                         video_parameters=VideoQuality.SD_480p,
+                        ffmpeg_parameters="-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -loglevel quiet"
                     )
                 else:
                     stream = MediaStream(
                         queued,
                         audio_parameters=AudioQuality.HIGH,
                         video_flags=MediaStream.IGNORE,
+                        ffmpeg_parameters="-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 -loglevel quiet"
                     )
                 try:
                     await client.change_stream(chat_id, stream)
