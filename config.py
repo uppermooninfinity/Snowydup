@@ -32,7 +32,7 @@ LOGGER_ID = int(os.getenv("LOGGER_ID", -1003748760283))
 FED_LOG_CHANNEL = int(os.getenv("FED_LOG_CHANNEL", --1003700186680))
 # Get this value from @BRANDRD_ROBOT on Telegram by /id
 OWNER_ID = int(os.getenv("OWNER_ID", "8285730532"))
-SUPERBAN_ADMINS = int(os.getenv("SUPERBAN_ADMUNS", "7651303468")
+SUPERBAN_ADMINS = int(os.getenv("SUPERBAN_ADMUNS", "7651303468"))
 ## Fill these variables if you're deploying on heroku.
 # Your heroku app name
 HEROKU_APP_NAME = os.getenv("HEROKU_APP_NAME")
