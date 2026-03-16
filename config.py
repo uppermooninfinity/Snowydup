@@ -27,12 +27,11 @@ PRIVATE_BOT_MODE = os.getenv("PRIVATE_BOT_MODE", None)
 DURATION_LIMIT_MIN = int(os.getenv("DURATION_LIMIT", 100000))
 
 # Chat id of a group for logging bot's activities
-SUPERBAN_LOG_GC = int(os.getenv("SUPERBAN_LOG_GC", -1003748760283))
+
 LOGGER_ID = int(os.getenv("LOGGER_ID", -1003748760283))
 FED_LOG_CHANNEL = int(os.getenv("FED_LOG_CHANNEL", --1003700186680))
 # Get this value from @BRANDRD_ROBOT on Telegram by /id
 OWNER_ID = int(os.getenv("OWNER_ID", "8285730532"))
-SUPERBAN_ADMINS = list(map(int, os.getenv("SUPERBAN_ADMINS", "7651303468").split()))
 ## Fill these variables if you're deploying on heroku.
 # Your heroku app name
 HEROKU_APP_NAME = os.getenv("HEROKU_APP_NAME")
@@ -49,7 +48,9 @@ GIT_TOKEN = os.getenv(
 
 SUPPORT_CHANNEL = os.getenv("SUPPORT_CHANNEL", "https://t.me/dark_musictm")
 SUPPORT_CHAT = os.getenv("SUPPORT_CHAT", "https://t.me/snowy_hometown")
-SUPERBAN_CHANNEL = os.getenv("SUPERBAN_CHANNEL", "https://t.me/astral_superbans")
+SUPERBAN_ADMINS = list(map(int, os.getenv("SUPERBAN_ADMINS", "7651303468,8285730532,8566964639").replace(",", " ").split()))
+SUPERBAN_LOG_GC = int(os.getenv("SUPERBAN_LOG_GC", -1003748760283))
+SUPERBAN_CHANNEL = int(os.getenv("SUPERBAN_CHANNEL", -1003634796457))
 # Set this to True if you want the assistant to automatically leave chats after an interval
 AUTO_LEAVING_ASSISTANT = bool(os.getenv("AUTO_LEAVING_ASSISTANT", False))
 
